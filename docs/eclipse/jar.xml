@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project default="create_run_jar" name="Create Runnable Jar for Project jMangaViewer">
+	<!--this file was created by Eclipse Runnable JAR Export Wizard -->
+	<!--ANT 1.7 is required -->
+	<target name="create_run_jar">
+		<jar
+			destfile="/Users/luca/Documents/programmazione/eclipse/workspace/jMangaViewer/jMangaViewer.jar"
+			filesetmanifest="mergewithoutmain">
+			<manifest>
+				<attribute name="Main-Class" value="it.sineo.jMangaViewer.Launcher" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset
+				dir="/Users/luca/Documents/programmazione/eclipse/workspace/jMangaViewer/bin" />
+			<fileset
+				dir="/Users/luca/Documents/programmazione/eclipse/workspace/JavaUnrar/bin" />
+			<zipfileset excludes="META-INF/*.SF"
+				src="/Users/luca/Documents/programmazione/java/Librerie/commons-logging-1.1.1/commons-logging-1.1.1.jar" />
+		</jar>
+	</target>
+</project>
