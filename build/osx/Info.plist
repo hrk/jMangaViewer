@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>CFBundleName</key>
+		<string>jMangaViewer</string>
+		<key>CFBundleVersion</key>
+		<string>1.0.@build.number@</string>
+		<key>CFBundleIdentifier</key>
+		<string>it.sineo.jMangaViewer</string>
+		<key>CFBundleAllowMixedLocalizations</key>
+		<string>true</string>
+		<key>CFBundleExecutable</key>
+		<string>JavaApplicationStub</string>
+		<key>CFBundleDevelopmentRegion</key>
+		<string>English</string>
+		<key>CFBundlePackageType</key>
+		<string>APPL</string>
+		<key>CFBundleSignature</key>
+		<string>????</string>
+		<key>CFBundleInfoDictionaryVersion</key>
+		<string>6.0</string>
+		<key>CFBundleIconFile</key>
+		<string>jMangaViewer.icns</string>
+		<key>Java</key>
+		<dict>
+			<key>MainClass</key>
+			<string>it.sineo.jMangaViewer.util.osx.OSXLauncher</string>
+			<key>JVMVersion</key>
+			<string>1.5+</string>
+			<key>ClassPath</key>
+			<string>$JAVAROOT/jMangaViewer.jar</string>
+		</dict>
+		<key>CFBundleDocumentTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeExtensions</key>
+				<array>
+					<string>cbp</string>
+					<string>cbz</string>
+					<string>zip</string>
+				</array>
+				<key>CFBundleTypeMIMETypes</key>
+				<array>
+					<string>application/zip</string>
+					<string>application/x-zip</string>
+					<string>application/x-zip-compressed</string>
+				</array>
+				<key>CFBundleTypeName</key>
+				<string>Comic Book ZIP Archive</string>
+				<key>CFBundleTypeOSTypes</key>
+				<array>
+					<string>ZIP </string>
+				</array>
+				<key>CFBundleTypeIconFile</key>
+				<string>Comic.icns</string>
+				<key>CFBundleTypeRole</key>
+				<string>Viewer</string>
+			</dict>
+			<dict>
+				<key>CFBundleTypeExtensions</key>
+				<array>
+					<string>cbr</string>
+					<string>rar</string>
+				</array>
+				<key>CFBundleTypeMIMETypes</key>
+				<array>
+					<string>application/rar</string>
+					<string>application/x-rar</string>
+					<string>application/x-rar-compressed</string>
+				</array>
+				<key>CFBundleTypeName</key>
+				<string>Comic Book RAR Archive</string>
+				<key>CFBundleTypeOSTypes</key>
+				<array>
+					<string>RAR </string>
+				</array>
+				<key>CFBundleTypeRole</key>
+				<string>Viewer</string>
+			</dict>
+		</array>
+	</dict>
+</plist>
