@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ====================================================================== 
+     14/giu/2009 11:05:36                                                        
+
+     jMangaViewer    
+     Comic Book viewer in Java
+                   
+     luca                                                                
+     ====================================================================== -->
+<project name="jMangaViewer" default="default">
+	<description>Comic Book viewer in Java</description>
+
+	<propertyfile file="build.number" />
+	<property name="build.dir" value="${basedir}/" />
+	<property name="osx.dist.dir" value="${basedir}/dist/osx" />
+	<property name="osx.build.dir" value="${basedir}/build/osx" />
+
+	<target name="init">
+		<buildnumber file="build.number" />
+	</target>
+
+	<!-- ================================= 
+          target: default              
+         ================================= -->
+	<target name="default" depends="depends" description="Comic Book viewer in Java">
+
+	</target>
+
+	<!-- - - - - - - - - - - - - - - - - - 
+          target: depends                      
+         - - - - - - - - - - - - - - - - - -->
+	<target name="depends">
+	</target>
+
+	<target name="buildOSX" depends="init, buildJar">
+		<propertyfile file="build.number" />
+		<mkdir dir="${osx.dist.dir}/${ant.project.name}.app" />
+		<mkdir dir="${osx.dist.dir}/${ant.project.name}.app/Contents" />
+		<filter token="build.number" value="${build.number}" />
+		<copy file="${osx.build.dir}/Info.plist" todir="${osx.dist.dir}/${ant.project.name}.app/Contents" filtering="true" />
+		<copy file="${osx.build.dir}/PkgInfo" todir="${osx.dist.dir}/${ant.project.name}.app/Contents/" filtering="false" />
+		<mkdir dir="${osx.dist.dir}/${ant.project.name}.app/Contents/MacOS" />
+		<copy file="${osx.build.dir}/JavaApplicationStub" todir="${osx.dist.dir}/${ant.project.name}.app/Contents/MacOS" filtering="false" />
+		<chmod perm="555" file="${osx.dist.dir}/${ant.project.name}.app/Contents/MacOS/JavaApplicationStub" />
+		<mkdir dir="${osx.dist.dir}/${ant.project.name}.app/Contents/Resources" />
+		<copy file="${osx.build.dir}/jMangaViewer.icns" todir="${osx.dist.dir}/${ant.project.name}.app/Contents/Resources" filtering="false" />
+		<mkdir dir="${osx.dist.dir}/${ant.project.name}.app/Contents/Resources/Java" />
+		<copy file="${build.dir}/jMangaViewer.jar" todir="${osx.dist.dir}/${ant.project.name}.app/Contents/Resources/Java" filtering="false" />
+	</target>
+
+	<target name="buildJar">
+		<jar destfile="${basedir}/jMangaViewer.jar" filesetmanifest="mergewithoutmain">
+			<manifest>
+				<attribute name="Main-Class" value="it.sineo.jMangaViewer.Launcher" />
+				<attribute name="Class-Path" value="." />
+			</manifest>
+			<fileset dir="${basedir}/bin" />
+			<fileset dir="${basedir}/../JavaUnrar/bin" />
+			<zipfileset excludes="META-INF/*.SF" src="${basedir}/../commonLibs/commons-logging-api-1.1.1.jar" />
+		</jar>
+	</target>
+	<target name="compile">
+		<javac srcdir="${basedir}/src" destdir="${basedir}/bin/">
+			<classpath>
+				<pathelement location="${basedir}/../JavaUnrar/bin" />
+
+			</classpath>
+		</javac>
+	</target>
+
+</project>
