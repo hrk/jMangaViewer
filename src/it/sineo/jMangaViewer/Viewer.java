@@ -6,6 +6,7 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.DisplayMode;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -14,7 +15,6 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Paint;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Toolkit;
@@ -79,8 +79,6 @@ public class Viewer extends JFrame {
 	Image screenImage;
 
 	boolean dirty = true;
-
-	boolean allowFullscreen = false;
 	/*
 	 * Shapes
 	 */
@@ -115,17 +113,16 @@ public class Viewer extends JFrame {
 		/*
 		 * GUI initialization.
 		 */
-		// this.setUndecorated(true);
+		this.setUndecorated(true);
 
 		this.setVisible(true);
 
-		Rectangle maxWindowBounds = GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds();
-		this.setSize(maxWindowBounds.width, maxWindowBounds.height);
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice gd = ge.getDefaultScreenDevice();
+		gd.setFullScreenWindow(myself);
+		this.setVisible(true);
+		// GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().setFullScreenWindow(this);
 
-		if (allowFullscreen) {
-			GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice().setFullScreenWindow(this);
-		}
-		
 		this.setBackground(Color.BLACK);
 
 		// getting display resolution: width and height
@@ -133,7 +130,6 @@ public class Viewer extends JFrame {
 		displayHeight = this.getHeight();
 		log.info("Display resolution: " + displayWidth + "x" + displayHeight);
 
-		requestFocus();
 		showFirstPage();
 	}
 
@@ -943,16 +939,14 @@ public class Viewer extends JFrame {
 						break;
 					}
 					case KeyEvent.VK_F: {
-						if (allowFullscreen) {
-							GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-							if (gd.getFullScreenWindow() != null && gd.getFullScreenWindow().equals(myself)) {
-								gd.setFullScreenWindow(null);
-							} else {
-								gd.setFullScreenWindow(myself);
-								// myself.setVisible(true);
-								dirty = true;
-								repaint();
-							}
+						GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+						if (gd.getFullScreenWindow() != null && gd.getFullScreenWindow().equals(myself)) {
+							gd.setFullScreenWindow(null);
+						} else {
+							gd.setFullScreenWindow(myself);
+							// myself.setVisible(true);
+							dirty = true;
+							repaint();
 						}
 						break;
 					}
