@@ -141,6 +141,7 @@ public class Launcher {
 						urls.add(url);
 					}
 				}
+				jf.close();
 			} else if (file.getName().endsWith(".rar") || file.getName().endsWith(".cbr")) {
 				try {
 					Archive rarFile = new Archive(file);
@@ -157,6 +158,7 @@ public class Launcher {
 							urls.add(url);
 						}
 					}
+					rarFile.close();
 				} catch (RarException rex) {
 					rex.printStackTrace();
 				}
