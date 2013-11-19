@@ -33,12 +33,16 @@ import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.RoundRectangle2D;
+import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.io.File;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
+import java.util.Enumeration;
+import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -79,6 +83,7 @@ public class Viewer extends JFrame {
 	Image screenImage;
 
 	boolean dirty = true;
+	boolean isHiDPI = false;
 	/*
 	 * Shapes
 	 */
@@ -109,6 +114,8 @@ public class Viewer extends JFrame {
 		this.comicBook = comicBook;
 		this.preferences = preferences;
 
+		this.isHiDPI = isHiDPI();
+
 		setupListeners();
 		myself = this;
 
@@ -119,15 +126,13 @@ public class Viewer extends JFrame {
 
 		this.setVisible(true);
 
-		GraphicsEnvironment ge = GraphicsEnvironment
-				.getLocalGraphicsEnvironment();
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice gd = ge.getDefaultScreenDevice();
 		gd.setFullScreenWindow(myself);
 		/*
-		 * OSX Lion and above require a workaround where we call
-		 * setVisible(false) and then again setVisible(true) in order to catch
-		 * keyboard events. Since it's not harmful to other platforms, we don't
-		 * use a specialized if.
+		 * OSX Lion and above require a workaround where we call setVisible(false)
+		 * and then again setVisible(true) in order to catch keyboard events. Since
+		 * it's not harmful to other platforms, we don't use a specialized if.
 		 */
 		myself.setVisible(false);
 		myself.setVisible(true);
@@ -168,55 +173,55 @@ public class Viewer extends JFrame {
 		// screenImage = Toolkit.getDefaultToolkit().createImage(imageURL);
 		log.fine("called Toolkit.#.getImage(), checking scale factor");
 		switch (preferences.getScaleFactor()) {
-		case Preferences.SCALE_HEIGHT: {
-			log.fine("scaling to fit height of " + displayHeight);
-			screenImage = original.getScaledInstance(-1, displayHeight,
-					preferences.getScaleQuality());
-			break;
-		}
-		case Preferences.SCALE_WIDTH: {
-			log.fine("scaling to fit width of " + displayWidth);
-			screenImage = original.getScaledInstance(displayWidth, -1,
-					preferences.getScaleQuality());
-			break;
-		}
-		case Preferences.SCALE_WINDOW: {
-			log.fine("scaling to fit window, preparing original image to calculate dimensions");
-			prepareImage(original, this);
-			long t0 = System.currentTimeMillis();
-			while ((checkImage(original, this) & (ImageObserver.HEIGHT | ImageObserver.WIDTH)) == 0) {
-				try {
-					if (System.currentTimeMillis() - t0 > maxLoadingTime) {
-						throw new InterruptedException(
-								"Loading time exceeded, problems arised while loading "
-										+ imageURL);
-					}
-					log.fine("image is not yet ready, going to sleep");
-					Thread.sleep(loadingSleepTime);
-				} catch (InterruptedException iex) {
-					iex.printStackTrace();
-					break;
-				}
-			} // end-while
-			log.fine("image loaded: " + original.getWidth(this) + "x"
-					+ original.getHeight(this));
-			if (original.getWidth(this) > original.getHeight(this)) {
-				log.fine("scaling to width");
-				screenImage = original.getScaledInstance(displayWidth, -1,
-						preferences.getScaleQuality());
-			} else {
-				log.fine("scaling to height");
+			case Preferences.SCALE_HEIGHT: {
+				log.fine("scaling to fit height of " + displayHeight);
 				screenImage = original.getScaledInstance(-1, displayHeight,
 						preferences.getScaleQuality());
+				break;
 			}
-			break;
-		}
-		case Preferences.SCALE_ORIGINAL: {
-			log.fine("not scaling due to original size request");
-			// No action.
-			screenImage = original;
-			break;
-		}
+			case Preferences.SCALE_WIDTH: {
+				log.fine("scaling to fit width of " + displayWidth);
+				screenImage = original.getScaledInstance(displayWidth, -1,
+						preferences.getScaleQuality());
+				break;
+			}
+			case Preferences.SCALE_WINDOW: {
+				log.fine("scaling to fit window, preparing original image to calculate dimensions");
+				prepareImage(original, this);
+				long t0 = System.currentTimeMillis();
+				while ((checkImage(original, this) & (ImageObserver.HEIGHT | ImageObserver.WIDTH)) == 0) {
+					try {
+						if (System.currentTimeMillis() - t0 > maxLoadingTime) {
+							throw new InterruptedException(
+									"Loading time exceeded, problems arised while loading "
+											+ imageURL);
+						}
+						log.fine("image is not yet ready, going to sleep");
+						Thread.sleep(loadingSleepTime);
+					} catch (InterruptedException iex) {
+						iex.printStackTrace();
+						break;
+					}
+				} // end-while
+				log.fine("image loaded: " + original.getWidth(this) + "x"
+						+ original.getHeight(this));
+				if (original.getWidth(this) > original.getHeight(this)) {
+					log.fine("scaling to width");
+					screenImage = original.getScaledInstance(displayWidth, -1,
+							preferences.getScaleQuality());
+				} else {
+					log.fine("scaling to height");
+					screenImage = original.getScaledInstance(-1, displayHeight,
+							preferences.getScaleQuality());
+				}
+				break;
+			}
+			case Preferences.SCALE_ORIGINAL: {
+				log.fine("not scaling due to original size request");
+				// No action.
+				screenImage = original;
+				break;
+			}
 		}
 		log.fine("preparing final image");
 		prepareImage(screenImage, this);
@@ -242,8 +247,8 @@ public class Viewer extends JFrame {
 
 		int originalWidth = original.getWidth(this);
 		log.fine("original width: " + originalWidth);
-		zoomFactor = percFormat.format((double) imageWidth
-				/ (double) originalWidth);
+		zoomFactor = percFormat
+				.format((double) imageWidth / (double) originalWidth);
 
 		if (imageWidth <= displayWidth) {
 			ignoreX = true;
@@ -279,15 +284,15 @@ public class Viewer extends JFrame {
 			pPaint = new Point(x, y);
 			log.fine("calculated starting point " + pPaint);
 		} else {
-			log.fine("subsequent display of image, deltaX=" + deltaX
-					+ ", deltaY=" + deltaY);
+			log.fine("subsequent display of image, deltaX=" + deltaX + ", deltaY="
+					+ deltaY);
 			int x = pLastPaint.x;
 
 			if (!ignoreX) {
 				if (deltaX < 0 && (x + deltaX + imageWidth < displayWidth)) {
 					/*
-					 * Movement to the left: the right border of the image
-					 * cannot be inside the screen.
+					 * Movement to the left: the right border of the image cannot be
+					 * inside the screen.
 					 */
 					x = displayWidth - imageWidth;
 				} else if (deltaX > 0 && (x + deltaX > 0)) {
@@ -369,8 +374,8 @@ public class Viewer extends JFrame {
 			// Pad with spaces:
 			byte[] b = new byte[of.length()];
 			Arrays.fill(b, 0, b.length, (byte) ' ');
-			System.arraycopy(pg.getBytes(), 0, b, b.length - pg.length(),
-					pg.length());
+			System
+					.arraycopy(pg.getBytes(), 0, b, b.length - pg.length(), pg.length());
 			pg = new String(b);
 		}
 		// TODO: move this to a resources file.
@@ -400,93 +405,111 @@ public class Viewer extends JFrame {
 					if (!(pPaint.equals(pLastPaint)) || dirty == true) {
 						dirty = false;
 						g.clearRect(0, 0, displayWidth, displayHeight);
+						long original_t0 = System.currentTimeMillis();
 						g.drawImage(screenImage, pPaint.x, pPaint.y, this);
+						long original_t1 = System.currentTimeMillis();
+						log.fine("time to draw original: " + (original_t1 - original_t0)
+								+ " ms");
 						/*
 						 * Shape and page info preparations.
 						 */
 						Graphics2D g2 = (Graphics2D) g;
+						g2.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION,
+								RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+						if (this.isHiDPI) {
+							/*
+							 * HiDPI ("retina") display upscaling.
+							 */
+							long upscaling_t0 = System.currentTimeMillis();
+							switch (preferences.getScaleQuality()) {
+								case Preferences.QUALITY_FAST: {
+									g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+											RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+									break;
+								}
+								case Preferences.QUALITY_MEDIUM: {
+									g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+											RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+									break;
+								}
+								case Preferences.QUALITY_HIGH: {
+									g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+											RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+									break;
+								}
+							}
+							g2.drawImage(screenImage, pPaint.x, pPaint.y, imageWidth,
+									imageHeight, this);
+							long upscaling_t1 = System.currentTimeMillis();
+							log.fine("time to draw upscaled: "
+									+ (upscaling_t1 - upscaling_t0) + " ms");
+						}
 						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
 								RenderingHints.VALUE_ANTIALIAS_ON);
-						g2.setRenderingHint(
-								RenderingHints.KEY_ALPHA_INTERPOLATION,
-								RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-
 						/*
 						 * OnScreenDisplay: page count and zoom factor.
 						 */
 						if (preferences.getOnScreenDisplay() == Preferences.ON_SCREEN_DISPLAY_ON) {
 							FontRenderContext frc = g2.getFontRenderContext();
 
-							TextLayout tlPageCount = new TextLayout(
-									pageCountText(), font, frc);
-							double pageCountBoxWidth = tlPageCount.getBounds()
-									.getWidth() + strokeWidth * 0.8D;
-							double pageCountBoxHeight = tlPageCount.getBounds()
-									.getHeight() + strokeWidth * 0.8D;
+							TextLayout tlPageCount = new TextLayout(pageCountText(), font,
+									frc);
+							double pageCountBoxWidth = tlPageCount.getBounds().getWidth()
+									+ strokeWidth * 0.8D;
+							double pageCountBoxHeight = tlPageCount.getBounds().getHeight()
+									+ strokeWidth * 0.8D;
 							double pageCountBoxArc = strokeWidth;
-							double pageCountBoxX = displayWidth
-									- pageCountBoxWidth - strokeWidth;// strokeWidth;
-							double pageCountBoxY = displayHeight
-									- pageCountBoxHeight - strokeWidth; // strokeWidth;
-							double pageCountX = pageCountBoxX
-									+ pageCountBoxWidth / 2
+							double pageCountBoxX = displayWidth - pageCountBoxWidth
+									- strokeWidth;// strokeWidth;
+							double pageCountBoxY = displayHeight - pageCountBoxHeight
+									- strokeWidth; // strokeWidth;
+							double pageCountX = pageCountBoxX + pageCountBoxWidth / 2
 									- tlPageCount.getBounds().getWidth() / 2
 									- tlPageCount.getBounds().getX();
-							double pageCountY = pageCountBoxY
-									+ pageCountBoxHeight / 2
+							double pageCountY = pageCountBoxY + pageCountBoxHeight / 2
 									- tlPageCount.getBounds().getHeight() / 2
 									- tlPageCount.getBounds().getY();
-							Shape boxPageCount = new RoundRectangle2D.Double(
-									pageCountBoxX, pageCountBoxY,
-									pageCountBoxWidth, pageCountBoxHeight,
+							Shape boxPageCount = new RoundRectangle2D.Double(pageCountBoxX,
+									pageCountBoxY, pageCountBoxWidth, pageCountBoxHeight,
 									pageCountBoxArc, pageCountBoxArc);
 
-							TextLayout tlZoomFactor = new TextLayout(
-									zoomFactor, font, frc);
-							double zoomFactorBoxWidth = tlZoomFactor
-									.getBounds().getWidth()
-									+ strokeWidth
-									* 0.8D;
-							double zoomFactorBoxHeight = tlZoomFactor
-									.getBounds().getHeight()
-									+ strokeWidth
-									* 0.8D;
+							TextLayout tlZoomFactor = new TextLayout(zoomFactor, font, frc);
+							double zoomFactorBoxWidth = tlZoomFactor.getBounds().getWidth()
+									+ strokeWidth * 0.8D;
+							double zoomFactorBoxHeight = tlZoomFactor.getBounds().getHeight()
+									+ strokeWidth * 0.8D;
 							double zoomFactorBoxArc = strokeWidth;
-							double zoomFactorBoxX = displayWidth
-									- zoomFactorBoxWidth - strokeWidth;
+							double zoomFactorBoxX = displayWidth - zoomFactorBoxWidth
+									- strokeWidth;
 							double zoomFactorBoxY = strokeWidth;
-							double zoomFactorX = zoomFactorBoxX
-									+ zoomFactorBoxWidth / 2
+							double zoomFactorX = zoomFactorBoxX + zoomFactorBoxWidth / 2
 									- tlZoomFactor.getBounds().getWidth() / 2
 									- tlZoomFactor.getBounds().getX();
-							double zoomFactorY = zoomFactorBoxY
-									+ zoomFactorBoxHeight / 2
+							double zoomFactorY = zoomFactorBoxY + zoomFactorBoxHeight / 2
 									- tlZoomFactor.getBounds().getHeight() / 2
 									- tlZoomFactor.getBounds().getY();
-							Shape boxZoomFactor = new RoundRectangle2D.Double(
-									zoomFactorBoxX, zoomFactorBoxY,
-									zoomFactorBoxWidth, zoomFactorBoxHeight,
+							Shape boxZoomFactor = new RoundRectangle2D.Double(zoomFactorBoxX,
+									zoomFactorBoxY, zoomFactorBoxWidth, zoomFactorBoxHeight,
 									zoomFactorBoxArc, zoomFactorBoxArc);
 
-							TextLayout tlFilename = new TextLayout(
-									getCurrentImageName(), font, frc);
-							double filenameBoxWidth = tlFilename.getBounds()
-									.getWidth() + strokeWidth * 0.8D;
-							double filenameBoxHeight = tlFilename.getBounds()
-									.getHeight() + strokeWidth * 0.8D;
+							TextLayout tlFilename = new TextLayout(getCurrentImageName(),
+									font, frc);
+							double filenameBoxWidth = tlFilename.getBounds().getWidth()
+									+ strokeWidth * 0.8D;
+							double filenameBoxHeight = tlFilename.getBounds().getHeight()
+									+ strokeWidth * 0.8D;
 							double filenameBoxArc = strokeWidth;
 							double filenameBoxX = strokeWidth;
-							double filenameBoxY = displayHeight
-									- pageCountBoxHeight - strokeWidth; // strokeWidth;
-							double filenameX = filenameBoxX + filenameBoxWidth
-									/ 2 - tlFilename.getBounds().getWidth() / 2
+							double filenameBoxY = displayHeight - pageCountBoxHeight
+									- strokeWidth; // strokeWidth;
+							double filenameX = filenameBoxX + filenameBoxWidth / 2
+									- tlFilename.getBounds().getWidth() / 2
 									- tlFilename.getBounds().getX();
-							double filenameY = filenameBoxY + filenameBoxHeight
-									/ 2 - tlFilename.getBounds().getHeight()
-									/ 2 - tlFilename.getBounds().getY();
-							Shape boxFilename = new RoundRectangle2D.Double(
-									filenameBoxX, filenameBoxY,
-									filenameBoxWidth, filenameBoxHeight,
+							double filenameY = filenameBoxY + filenameBoxHeight / 2
+									- tlFilename.getBounds().getHeight() / 2
+									- tlFilename.getBounds().getY();
+							Shape boxFilename = new RoundRectangle2D.Double(filenameBoxX,
+									filenameBoxY, filenameBoxWidth, filenameBoxHeight,
 									filenameBoxArc, filenameBoxArc);
 
 							g2.setComposite(compositeTransparent);
@@ -496,49 +519,39 @@ public class Viewer extends JFrame {
 							g2.fill(boxFilename);
 							g2.setComposite(compositeOpaque);
 							g2.setPaint(whitePaint);
-							tlPageCount.draw(g2, (float) pageCountX,
-									(float) pageCountY);
-							tlZoomFactor.draw(g2, (float) zoomFactorX,
-									(float) zoomFactorY);
-							tlFilename.draw(g2, (float) filenameX,
-									(float) filenameY);
+							tlPageCount.draw(g2, (float) pageCountX, (float) pageCountY);
+							tlZoomFactor.draw(g2, (float) zoomFactorX, (float) zoomFactorY);
+							tlFilename.draw(g2, (float) filenameX, (float) filenameY);
 						}
 						if (shape != null) {
 							/*
-							 * Prepare a square background bounding box for the
-							 * shape.
+							 * Prepare a square background bounding box for the shape.
 							 */
-							int maxDimension = shape.getBounds().height > shape
-									.getBounds().width ? shape.getBounds().height
-									: shape.getBounds().width;
-							int boundingBoxSize = maxDimension + strokeWidth
-									* 6;
+							int maxDimension = shape.getBounds().height > shape.getBounds().width ? shape
+									.getBounds().height : shape.getBounds().width;
+							int boundingBoxSize = maxDimension + strokeWidth * 6;
 							Shape boundingBox = new RoundRectangle2D.Float(
 									(displayWidth - boundingBoxSize) / 2,
-									(displayHeight - boundingBoxSize) / 2,
-									boundingBoxSize, boundingBoxSize,
-									arcLength, arcLength);
+									(displayHeight - boundingBoxSize) / 2, boundingBoxSize,
+									boundingBoxSize, arcLength, arcLength);
 							/*
-							 * Set a transparent composite, then draw/fill the
-							 * background box.
+							 * Set a transparent composite, then draw/fill the background box.
 							 */
 							g2.setComposite(compositeTransparent);
 							g2.setPaint(blackPaint);
 							g2.fill(boundingBox);
 							/*
-							 * Set a opaque composite, white paint, then draw
-							 * and fill the shape.
+							 * Set a opaque composite, white paint, then draw and fill the
+							 * shape.
 							 */
 							g2.setComposite(compositeOpaque);
 							g2.setPaint(whitePaint);
-							g2.setStroke(new BasicStroke(strokeWidth,
-									BasicStroke.CAP_ROUND,
+							g2.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_ROUND,
 									BasicStroke.JOIN_ROUND));
 
-							AffineTransform center = AffineTransform
-									.getTranslateInstance(
-											(displayWidth - shape.getBounds().width) / 2,
-											(displayHeight - shape.getBounds().height) / 2);
+							AffineTransform center = AffineTransform.getTranslateInstance(
+									(displayWidth - shape.getBounds().width) / 2,
+									(displayHeight - shape.getBounds().height) / 2);
 							shape.transform(center);
 							g2.draw(shape);
 							g2.fill(shape);
@@ -750,36 +763,36 @@ public class Viewer extends JFrame {
 
 			public void mouseWheelMoved(MouseWheelEvent e) {
 				switch (e.getScrollType()) {
-				case MouseWheelEvent.WHEEL_BLOCK_SCROLL: {
-					log.severe("Unhandled scroll type: WHEEL_BLOCK_SCROLL; event="
-							+ e.toString());
-					break;
-				}
-				case MouseWheelEvent.WHEEL_UNIT_SCROLL: {
-					log.severe(e.toString());
-					if ((e.getModifiersEx() & maskHorizontalScroll) == maskHorizontalScroll) {
-						if (System.currentTimeMillis() - mouseLastCheckScrollX >= scrollPollingTime) {
-							updatePaintPosition(-horizontalScrollAmount, 0);
-							horizontalScrollAmount = 0;
-							mouseLastCheckScrollX = System.currentTimeMillis();
-							repaint();
-						} else {
-							horizontalScrollAmount += e.getScrollAmount()
-									* e.getWheelRotation();
-						}
-					} else {
-						if (System.currentTimeMillis() - mouseLastCheckScrollY >= scrollPollingTime) {
-							updatePaintPosition(0, -verticalScrollAmount);
-							verticalScrollAmount = 0;
-							mouseLastCheckScrollY = System.currentTimeMillis();
-							repaint();
-						} else {
-							verticalScrollAmount += e.getScrollAmount()
-									* e.getWheelRotation();
-						}
+					case MouseWheelEvent.WHEEL_BLOCK_SCROLL: {
+						log.severe("Unhandled scroll type: WHEEL_BLOCK_SCROLL; event="
+								+ e.toString());
+						break;
 					}
-					break;
-				}
+					case MouseWheelEvent.WHEEL_UNIT_SCROLL: {
+						log.severe(e.toString());
+						if ((e.getModifiersEx() & maskHorizontalScroll) == maskHorizontalScroll) {
+							if (System.currentTimeMillis() - mouseLastCheckScrollX >= scrollPollingTime) {
+								updatePaintPosition(-horizontalScrollAmount, 0);
+								horizontalScrollAmount = 0;
+								mouseLastCheckScrollX = System.currentTimeMillis();
+								repaint();
+							} else {
+								horizontalScrollAmount += e.getScrollAmount()
+										* e.getWheelRotation();
+							}
+						} else {
+							if (System.currentTimeMillis() - mouseLastCheckScrollY >= scrollPollingTime) {
+								updatePaintPosition(0, -verticalScrollAmount);
+								verticalScrollAmount = 0;
+								mouseLastCheckScrollY = System.currentTimeMillis();
+								repaint();
+							} else {
+								verticalScrollAmount += e.getScrollAmount()
+										* e.getWheelRotation();
+							}
+						}
+						break;
+					}
 				}
 			}
 		});
@@ -803,8 +816,7 @@ public class Viewer extends JFrame {
 							_dy = e.getY() - mouseY;
 						}
 						mouseY = e.getY();
-						log.fine("detected mouse drag: dx = " + _dx + ", dy = "
-								+ _dy);
+						log.fine("detected mouse drag: dx = " + _dx + ", dy = " + _dy);
 						updatePaintPosition(_dx, _dy);
 						repaint();
 					}
@@ -820,246 +832,236 @@ public class Viewer extends JFrame {
 		addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent ke) {
 				switch (ke.getKeyCode()) {
-				case KeyEvent.VK_Q:
-				case KeyEvent.VK_ESCAPE: {
-					preferences.save();
-					System.exit(0);
-					break;
-				}
-				case KeyEvent.VK_PAGE_UP:
-				case KeyEvent.VK_UP: {
-					updatePaintPosition(0, fixedScrollHeight());
-					repaint();
-					break;
-				}
-				case KeyEvent.VK_PAGE_DOWN:
-				case KeyEvent.VK_DOWN: {
-					updatePaintPosition(0, -fixedScrollHeight());
-					repaint();
-					break;
-				}
-				case KeyEvent.VK_SPACE: {
-					if (isScrollComplete()) {
-						showNextPage();
-					} else {
-						int deltaX = 0;
-						int deltaY = 0;
-						if (preferences.getScrollPriority() == Preferences.SCROLL_PRIORITY_VERTICAL) {
-							/*
-							 * If we are not at the (bottom) end of the image
-							 * (and we're not ignoring y), we go down.
-							 * Otherwise, we move horizontally (either right or
-							 * left depending on configuration).
-							 */
-							if (!isVerticalScrollComplete() && !ignoreY) {
-								deltaY = -fixedScrollHeight();
-							} else {
-								/*
-								 * We reset y (if needed) and move horizontally.
-								 * deltaY must be brought back to the top of the
-								 * screen. We know that we last painted at y =
-								 * (displayHeight - imageHeight) so that's what
-								 * we need to use as deltaY.
-								 */
-								if (!ignoreY) {
-									deltaY = imageHeight - displayHeight;
-								}
-								if (preferences.getReadingStyle() == Preferences.READING_RIGHT_TO_LEFT) {
-									deltaX = fixedScrollWidth();
-								} else {
-									deltaX = -fixedScrollWidth();
-								}
-							}
+					case KeyEvent.VK_Q:
+					case KeyEvent.VK_ESCAPE: {
+						preferences.save();
+						System.exit(0);
+						break;
+					}
+					case KeyEvent.VK_PAGE_UP:
+					case KeyEvent.VK_UP: {
+						updatePaintPosition(0, fixedScrollHeight());
+						repaint();
+						break;
+					}
+					case KeyEvent.VK_PAGE_DOWN:
+					case KeyEvent.VK_DOWN: {
+						updatePaintPosition(0, -fixedScrollHeight());
+						repaint();
+						break;
+					}
+					case KeyEvent.VK_SPACE: {
+						if (isScrollComplete()) {
+							showNextPage();
 						} else {
-							/*
-							 * First horizontally, then downward (resetting
-							 * horizontal position). If we're not at the far end
-							 * of the image (depending on reading style) and
-							 * we're not ignoring x movements, we move
-							 * horizontally (depending on reading style).
-							 * Otherwise, we go down resetting x.
-							 */
-							if (!isHorizontalScrollComplete() && !ignoreX) {
-								if (preferences.getReadingStyle() == Preferences.READING_RIGHT_TO_LEFT) {
-									deltaX = fixedScrollWidth();
-								} else {
-									deltaX = -fixedScrollWidth();
-								}
-							} else {
+							int deltaX = 0;
+							int deltaY = 0;
+							if (preferences.getScrollPriority() == Preferences.SCROLL_PRIORITY_VERTICAL) {
 								/*
-								 * Reset x and go down.
+								 * If we are not at the (bottom) end of the image (and we're not
+								 * ignoring y), we go down. Otherwise, we move horizontally
+								 * (either right or left depending on configuration).
 								 */
-								if (!ignoreX) {
+								if (!isVerticalScrollComplete() && !ignoreY) {
+									deltaY = -fixedScrollHeight();
+								} else {
+									/*
+									 * We reset y (if needed) and move horizontally. deltaY must
+									 * be brought back to the top of the screen. We know that we
+									 * last painted at y = (displayHeight - imageHeight) so that's
+									 * what we need to use as deltaY.
+									 */
+									if (!ignoreY) {
+										deltaY = imageHeight - displayHeight;
+									}
 									if (preferences.getReadingStyle() == Preferences.READING_RIGHT_TO_LEFT) {
-										/*
-										 * We last painted at x = 0.
-										 */
-										deltaX = displayWidth - imageWidth;
+										deltaX = fixedScrollWidth();
 									} else {
-										/*
-										 * We last painted at - (imageWidth -
-										 * displayWidth)
-										 */
-										deltaX = imageWidth - displayWidth;
+										deltaX = -fixedScrollWidth();
 									}
 								}
-								deltaY = -fixedScrollHeight();
+							} else {
+								/*
+								 * First horizontally, then downward (resetting horizontal
+								 * position). If we're not at the far end of the image
+								 * (depending on reading style) and we're not ignoring x
+								 * movements, we move horizontally (depending on reading style).
+								 * Otherwise, we go down resetting x.
+								 */
+								if (!isHorizontalScrollComplete() && !ignoreX) {
+									if (preferences.getReadingStyle() == Preferences.READING_RIGHT_TO_LEFT) {
+										deltaX = fixedScrollWidth();
+									} else {
+										deltaX = -fixedScrollWidth();
+									}
+								} else {
+									/*
+									 * Reset x and go down.
+									 */
+									if (!ignoreX) {
+										if (preferences.getReadingStyle() == Preferences.READING_RIGHT_TO_LEFT) {
+											/*
+											 * We last painted at x = 0.
+											 */
+											deltaX = displayWidth - imageWidth;
+										} else {
+											/*
+											 * We last painted at - (imageWidth - displayWidth)
+											 */
+											deltaX = imageWidth - displayWidth;
+										}
+									}
+									deltaY = -fixedScrollHeight();
+								}
 							}
+							updatePaintPosition(deltaX, deltaY);
+							repaint();
 						}
-						updatePaintPosition(deltaX, deltaY);
-						repaint();
+						break;
 					}
-					break;
-				}
-				case KeyEvent.VK_RIGHT: {
-					if (preferences.getReadingStyle() == Preferences.READING_RIGHT_TO_LEFT) {
-						showPreviousPage();
-					} else {
-						showNextPage();
+					case KeyEvent.VK_RIGHT: {
+						if (preferences.getReadingStyle() == Preferences.READING_RIGHT_TO_LEFT) {
+							showPreviousPage();
+						} else {
+							showNextPage();
+						}
+						break;
 					}
-					break;
-				}
-				case KeyEvent.VK_LEFT: {
-					if (preferences.getReadingStyle() == Preferences.READING_RIGHT_TO_LEFT) {
-						showNextPage();
-					} else {
-						showPreviousPage();
+					case KeyEvent.VK_LEFT: {
+						if (preferences.getReadingStyle() == Preferences.READING_RIGHT_TO_LEFT) {
+							showNextPage();
+						} else {
+							showPreviousPage();
+						}
+						break;
 					}
-					break;
-				}
-				case KeyEvent.VK_HOME: {
-					/*
-					 * Always first page, regardless of reading style.
-					 */
-					showFirstPage();
-					break;
-				}
-				case KeyEvent.VK_END: {
-					/*
-					 * Always last page, regardless of reading style.
-					 */
-					showLastPage();
-					break;
-				}
-				case KeyEvent.VK_W: {
-					preferences.setScaleFactor(Preferences.SCALE_WIDTH);
-					load(comicBook.getCurrentPageURL());
-					updatePaintPosition(-1, -1);
-					repaint();
-					break;
-				}
-				case KeyEvent.VK_H: {
-					preferences.setScaleFactor(Preferences.SCALE_HEIGHT);
-					load(comicBook.getCurrentPageURL());
-					updatePaintPosition(-1, -1);
-					repaint();
-					break;
-				}
-				case KeyEvent.VK_O: {
-					preferences.setScaleFactor(Preferences.SCALE_ORIGINAL);
-					load(comicBook.getCurrentPageURL());
-					updatePaintPosition(-1, -1);
-					repaint();
-					break;
-				}
-				case KeyEvent.VK_B: {
-					preferences.setScaleFactor(Preferences.SCALE_WINDOW);
-					load(comicBook.getCurrentPageURL());
-					updatePaintPosition(-1, -1);
-					repaint();
-					break;
-				}
-				/* Scaling quality */
-				case KeyEvent.VK_1: {
-					preferences.setScaleQuality(Preferences.QUALITY_FAST);
-					load(comicBook.getCurrentPageURL());
-					updatePaintPosition(-1, -1);
-					repaint();
-					break;
-				}
-				case KeyEvent.VK_2: {
-					preferences.setScaleQuality(Preferences.QUALITY_MEDIUM);
-					load(comicBook.getCurrentPageURL());
-					updatePaintPosition(-1, -1);
-					repaint();
-					break;
-				}
-				case KeyEvent.VK_3: {
-					preferences.setScaleQuality(Preferences.QUALITY_HIGH);
-					load(comicBook.getCurrentPageURL());
-					updatePaintPosition(-1, -1);
-					repaint();
-					break;
-				}
-				case KeyEvent.VK_L: {
-					preferences
-							.setReadingStyle(Preferences.READING_LEFT_TO_RIGHT);
-					break;
-				}
-				case KeyEvent.VK_R: {
-					preferences
-							.setReadingStyle(Preferences.READING_RIGHT_TO_LEFT);
-					break;
-				}
-				case KeyEvent.VK_N: {
-					preferences
-							.setScrollPriority(Preferences.SCROLL_PRIORITY_VERTICAL);
-					break;
-				}
-				case KeyEvent.VK_Z: {
-					preferences
-							.setScrollPriority(Preferences.SCROLL_PRIORITY_HORIZONTAL);
-					break;
-				}
-				case KeyEvent.VK_D: {
-					if (preferences.getOnScreenDisplay() == Preferences.ON_SCREEN_DISPLAY_OFF) {
-						preferences
-								.setOnScreenDisplay(Preferences.ON_SCREEN_DISPLAY_ON);
-					} else {
-						preferences
-								.setOnScreenDisplay(Preferences.ON_SCREEN_DISPLAY_OFF);
-					}
-					dirty = true;
-					repaint();
-					break;
-				}
-				case KeyEvent.VK_F: {
-					GraphicsDevice gd = GraphicsEnvironment
-							.getLocalGraphicsEnvironment()
-							.getDefaultScreenDevice();
-					if (gd.getFullScreenWindow() != null
-							&& gd.getFullScreenWindow().equals(myself)) {
-						gd.setFullScreenWindow(null);
-					} else {
-						gd.setFullScreenWindow(myself);
+					case KeyEvent.VK_HOME: {
 						/*
-						 * Fix for OSX Lion and above, losing keyboard events
-						 * when switching to full screen.
+						 * Always first page, regardless of reading style.
 						 */
-						myself.setVisible(false);
-						myself.setVisible(true);
+						showFirstPage();
+						break;
+					}
+					case KeyEvent.VK_END: {
+						/*
+						 * Always last page, regardless of reading style.
+						 */
+						showLastPage();
+						break;
+					}
+					case KeyEvent.VK_W: {
+						preferences.setScaleFactor(Preferences.SCALE_WIDTH);
+						load(comicBook.getCurrentPageURL());
+						updatePaintPosition(-1, -1);
+						repaint();
+						break;
+					}
+					case KeyEvent.VK_H: {
+						preferences.setScaleFactor(Preferences.SCALE_HEIGHT);
+						load(comicBook.getCurrentPageURL());
+						updatePaintPosition(-1, -1);
+						repaint();
+						break;
+					}
+					case KeyEvent.VK_O: {
+						preferences.setScaleFactor(Preferences.SCALE_ORIGINAL);
+						load(comicBook.getCurrentPageURL());
+						updatePaintPosition(-1, -1);
+						repaint();
+						break;
+					}
+					case KeyEvent.VK_B: {
+						preferences.setScaleFactor(Preferences.SCALE_WINDOW);
+						load(comicBook.getCurrentPageURL());
+						updatePaintPosition(-1, -1);
+						repaint();
+						break;
+					}
+					/* Scaling quality */
+					case KeyEvent.VK_1: {
+						preferences.setScaleQuality(Preferences.QUALITY_FAST);
+						load(comicBook.getCurrentPageURL());
+						updatePaintPosition(-1, -1);
+						repaint();
+						break;
+					}
+					case KeyEvent.VK_2: {
+						preferences.setScaleQuality(Preferences.QUALITY_MEDIUM);
+						load(comicBook.getCurrentPageURL());
+						updatePaintPosition(-1, -1);
+						repaint();
+						break;
+					}
+					case KeyEvent.VK_3: {
+						preferences.setScaleQuality(Preferences.QUALITY_HIGH);
+						load(comicBook.getCurrentPageURL());
+						updatePaintPosition(-1, -1);
+						repaint();
+						break;
+					}
+					case KeyEvent.VK_L: {
+						preferences.setReadingStyle(Preferences.READING_LEFT_TO_RIGHT);
+						break;
+					}
+					case KeyEvent.VK_R: {
+						preferences.setReadingStyle(Preferences.READING_RIGHT_TO_LEFT);
+						break;
+					}
+					case KeyEvent.VK_N: {
+						preferences.setScrollPriority(Preferences.SCROLL_PRIORITY_VERTICAL);
+						break;
+					}
+					case KeyEvent.VK_Z: {
+						preferences
+								.setScrollPriority(Preferences.SCROLL_PRIORITY_HORIZONTAL);
+						break;
+					}
+					case KeyEvent.VK_D: {
+						if (preferences.getOnScreenDisplay() == Preferences.ON_SCREEN_DISPLAY_OFF) {
+							preferences.setOnScreenDisplay(Preferences.ON_SCREEN_DISPLAY_ON);
+						} else {
+							preferences.setOnScreenDisplay(Preferences.ON_SCREEN_DISPLAY_OFF);
+						}
 						dirty = true;
 						repaint();
+						break;
 					}
-					break;
-				}
-				case KeyEvent.VK_P: {
-					String s = (String) JOptionPane.showInputDialog(myself,
-							"Go to page...", "Customized Dialog",
-							JOptionPane.PLAIN_MESSAGE, null, null,
-							comicBook.getCurrentPageNumber() + "");
-					try {
-						int goToPage = Integer.parseInt(s);
-						if (comicBook.getNumberOfPages() < goToPage) {
-							if (comicBook.getCurrentPageNumber() < goToPage) {
-								showPage(goToPage);
-							}
+					case KeyEvent.VK_F: {
+						GraphicsDevice gd = GraphicsEnvironment
+								.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+						if (gd.getFullScreenWindow() != null
+								&& gd.getFullScreenWindow().equals(myself)) {
+							gd.setFullScreenWindow(null);
+						} else {
+							gd.setFullScreenWindow(myself);
+							/*
+							 * Fix for OSX Lion and above, losing keyboard events when
+							 * switching to full screen.
+							 */
+							myself.setVisible(false);
+							myself.setVisible(true);
+							dirty = true;
+							repaint();
 						}
-					} catch (Exception ex) {
-						ex.printStackTrace();
+						break;
 					}
-					break;
-				}
+					case KeyEvent.VK_P: {
+						String s = (String) JOptionPane.showInputDialog(myself,
+								"Go to page...", "Customized Dialog",
+								JOptionPane.PLAIN_MESSAGE, null, null,
+								comicBook.getCurrentPageNumber() + "");
+						try {
+							int goToPage = Integer.parseInt(s);
+							if (comicBook.getNumberOfPages() < goToPage) {
+								if (comicBook.getCurrentPageNumber() < goToPage) {
+									showPage(goToPage);
+								}
+							}
+						} catch (Exception ex) {
+							ex.printStackTrace();
+						}
+						break;
+					}
 				}
 			}
 
@@ -1080,5 +1082,49 @@ public class Viewer extends JFrame {
 				dirty = true;
 			}
 		});
+	}
+
+	protected boolean isHiDPI() {
+		Properties p = System.getProperties();
+		final String vendor = p.getProperty("java.vm.vendor");
+		if (vendor != null) {
+			if (vendor.indexOf("Apple") != -1) {
+				return "2.0".equals(Toolkit.getDefaultToolkit().getDesktopProperty(
+						"apple.awt.contentScaleFactor"));
+				/*
+				try {
+					final boolean[] isRetina = new boolean[1];
+					new apple.awt.CImage.HiDPIScaledImage(1, 1,
+							BufferedImage.TYPE_INT_ARGB) {
+						public void drawIntoImage(BufferedImage image, float v) {
+							isRetina[0] = v > 1;
+						}
+					};
+					return isRetina[0];
+				} catch (Throwable e) {
+					e.printStackTrace();
+					return false;
+				}
+				*/
+			} else if (vendor.indexOf("Oracle") != -1) {
+				GraphicsEnvironment env = GraphicsEnvironment
+						.getLocalGraphicsEnvironment();
+				final GraphicsDevice device = env.getDefaultScreenDevice();
+				try {
+					Field field = device.getClass().getDeclaredField("scale");
+
+					if (field != null) {
+						field.setAccessible(true);
+						Object scale = field.get(device);
+
+						if (scale instanceof Integer && ((Integer) scale).intValue() == 2) {
+							return true;
+						}
+					}
+				} catch (Exception ignore) {
+				}
+			}
+		}
+		return false;
 	}
 }
