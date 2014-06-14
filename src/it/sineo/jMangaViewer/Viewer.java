@@ -33,19 +33,19 @@ import java.awt.font.TextLayout;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.RoundRectangle2D;
-import java.awt.image.BufferedImage;
 import java.awt.image.ImageObserver;
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.SocketHandler;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -835,6 +835,14 @@ public class Viewer extends JFrame {
 					case KeyEvent.VK_Q:
 					case KeyEvent.VK_ESCAPE: {
 						preferences.save();
+						if (overlayThread != null) {
+							overlayThread.interrupt();
+							try {
+								Thread.sleep(500);
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+						}
 						System.exit(0);
 						break;
 					}
@@ -1091,21 +1099,6 @@ public class Viewer extends JFrame {
 			if (vendor.indexOf("Apple") != -1) {
 				return "2.0".equals(Toolkit.getDefaultToolkit().getDesktopProperty(
 						"apple.awt.contentScaleFactor"));
-				/*
-				try {
-					final boolean[] isRetina = new boolean[1];
-					new apple.awt.CImage.HiDPIScaledImage(1, 1,
-							BufferedImage.TYPE_INT_ARGB) {
-						public void drawIntoImage(BufferedImage image, float v) {
-							isRetina[0] = v > 1;
-						}
-					};
-					return isRetina[0];
-				} catch (Throwable e) {
-					e.printStackTrace();
-					return false;
-				}
-				*/
 			} else if (vendor.indexOf("Oracle") != -1) {
 				GraphicsEnvironment env = GraphicsEnvironment
 						.getLocalGraphicsEnvironment();
