@@ -35,7 +35,6 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.ImageObserver;
 import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -45,7 +44,6 @@ import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.logging.SocketHandler;
 
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
