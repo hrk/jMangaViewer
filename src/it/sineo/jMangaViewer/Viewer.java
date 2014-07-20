@@ -114,6 +114,16 @@ public class Viewer extends JFrame {
 
 		this.isHiDPI = isHiDPI();
 
+		String[] fontNames = { "Calibri", "Tahoma", "Ubuntu", "Droid Sans",
+				"SansSerif" };
+		for (String fontName : fontNames) {
+			Font f = new Font(fontName, Font.PLAIN, strokeWidth);
+			if (!"Dialog".equals(f.getFamily())) {
+				font = f;
+				break;
+			}
+		}
+
 		setupListeners();
 		myself = this;
 
