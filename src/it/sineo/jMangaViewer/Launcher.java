@@ -4,6 +4,7 @@ import it.sineo.jMangaViewer.util.ComicBookFileFilter;
 import it.sineo.jMangaViewer.util.ComicBookPageComparator;
 import it.sineo.jMangaViewer.util.ImageFileFilter;
 
+import java.awt.EventQueue;
 import java.awt.FileDialog;
 import java.io.File;
 import java.io.FileFilter;
@@ -103,8 +104,13 @@ public class Launcher {
 				System.exit(-1);
 			}
 			try {
-				ComicBook cb = buildComicBook(selectedFile);
-				new Viewer(cb, new Preferences());
+				final ComicBook cb = buildComicBook(selectedFile);
+//				new Viewer(cb, new Preferences());
+				EventQueue.invokeLater(new Runnable() {
+					public void run() {
+						new Viewer2(cb, new Preferences())/*.display()*/;
+					}
+				});
 			} catch (IOException ioex) {
 				ioex.printStackTrace();
 				JOptionPane.showMessageDialog(null, selectedFile + " could not be opened. Error is: " + ioex);
