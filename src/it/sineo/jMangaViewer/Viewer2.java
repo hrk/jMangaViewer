@@ -850,7 +850,6 @@ public class Viewer2 extends JPanel {
 			}
 			if (!(pPaint.equals(pLastPaint)) || dirty == true) {
 				dirty = false;
-				g.clearRect(0, 0, displayWidth, displayHeight);
 				g.fillRect(0, 0, displayWidth, displayHeight);
 				long original_t0 = System.currentTimeMillis();
 				boolean complete = g.drawImage(screenImage, pPaint.x, pPaint.y, /* this */
