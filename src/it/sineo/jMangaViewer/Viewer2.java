@@ -61,7 +61,7 @@ public class Viewer2 extends JPanel {
 	private final static int NUMBER_OF_BUFFERS = 2;
 
 	private final static String ACTION_KEY = "jMangaViewer_key";
-	
+
 	private final static String EXIT = "exit";
 	private final static String SHOW_HIDE = "show_hide";
 	private final static String TOGGLE_OSD = "toggle_old";
@@ -196,11 +196,11 @@ public class Viewer2 extends JPanel {
 
 	private class NavigateAction extends AbstractAction {
 		private static final long serialVersionUID = 1L;
-		
+
 		public NavigateAction(String action) {
 			putValue(ACTION_KEY, action);
 		}
-		
+
 		public void actionPerformed(ActionEvent e) {
 			final String key = (String) getValue(ACTION_KEY);
 			if (SHOW_FIRST_PAGE.equals(key)) {
@@ -259,10 +259,11 @@ public class Viewer2 extends JPanel {
 						}
 					} else {
 						/*
-						 * First horizontally, then downward (resetting horizontal position).
-						 * If we're not at the far end of the image (depending on reading
-						 * style) and we're not ignoring x movements, we move horizontally
-						 * (depending on reading style). Otherwise, we go down resetting x.
+						 * First horizontally, then downward (resetting horizontal
+						 * position). If we're not at the far end of the image (depending on
+						 * reading style) and we're not ignoring x movements, we move
+						 * horizontally (depending on reading style). Otherwise, we go down
+						 * resetting x.
 						 */
 						if (!isHorizontalScrollComplete() && !ignoreX) {
 							if (preferences.getReadingStyle() == Preferences.READING_RIGHT_TO_LEFT) {
@@ -308,14 +309,13 @@ public class Viewer2 extends JPanel {
 				}
 			} // end-if: GO_TO_PAGE
 		}
-		
+
 	}
-	
+
 	private class ScaleFactorAction extends AbstractAction {
 		private static final long serialVersionUID = 1L;
 
 		public ScaleFactorAction(String action) {
-			System.out.println("scaleFactor salvo key=" + action);
 			putValue(ACTION_KEY, action);
 		}
 
@@ -341,7 +341,6 @@ public class Viewer2 extends JPanel {
 		private static final long serialVersionUID = 1L;
 
 		public ScaleQualityAction(String action) {
-			System.out.println("scaleQuality salvo key=" + action);
 			putValue(ACTION_KEY, action);
 		}
 
@@ -451,7 +450,7 @@ public class Viewer2 extends JPanel {
 		/* Actions */
 		getActionMap().put(EXIT, exitAction);
 		getActionMap().put(SHOW_HIDE, showHideAction);
-		
+
 		getActionMap().put(GO_LEFT, new NavigateAction(GO_LEFT));
 		getActionMap().put(GO_RIGHT, new NavigateAction(GO_RIGHT));
 		getActionMap().put(GO_UP, new NavigateAction(GO_UP));
@@ -460,7 +459,7 @@ public class Viewer2 extends JPanel {
 		getActionMap().put(SHOW_FIRST_PAGE, new NavigateAction(SHOW_FIRST_PAGE));
 		getActionMap().put(SHOW_LAST_PAGE, new NavigateAction(SHOW_LAST_PAGE));
 		getActionMap().put(SCROLL, new NavigateAction(SCROLL));
-		
+
 		getActionMap().put(SCALE_WIDTH, new ScaleFactorAction(SCALE_WIDTH));
 		getActionMap().put(SCALE_HEIGHT, new ScaleFactorAction(SCALE_HEIGHT));
 		getActionMap().put(SCALE_ORIGINAL, new ScaleFactorAction(SCALE_ORIGINAL));
