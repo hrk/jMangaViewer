@@ -170,8 +170,10 @@ public class Viewer2 extends JPanel {
 
 		public void actionPerformed(ActionEvent e) {
 			if (isFullScreen) {
+				log.fine("show-hide: removing fullscreen");
 				device.setFullScreenWindow(null);
 			} else {
+				log.fine("show-hide: setting fullscreen");
 				device.setFullScreenWindow(f);
 				dirty = true;
 				renderWrapper();
