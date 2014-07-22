@@ -15,7 +15,6 @@ import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.Paint;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Toolkit;
@@ -59,6 +58,8 @@ public class Viewer2 extends JPanel {
 
 	private final static int NUMBER_OF_BUFFERS = 2;
 
+	private final static String ACTION_KEY = "jMangaViewer_key";
+	
 	private final static String EXIT = "exit";
 	private final static String SHOW_HIDE = "show_hide";
 	private final static String TOGGLE_OSD = "toggle_old";
@@ -76,9 +77,9 @@ public class Viewer2 extends JPanel {
 	private final static String SCALE_ORIGINAL = "scale_original";
 	private final static String SCALE_WINDOW = "scale_window";
 	/* Scale quality */
-	private final static String SCALE_FAST = "scale_fast";
-	private final static String SCALE_MEDIUM = "scale_medium";
-	private final static String SCALE_HIGH = "scale_high";
+	private final static String QUALITY_FAST = "scale_fast";
+	private final static String QUALITY_MEDIUM = "scale_medium";
+	private final static String QUALITY_HIGH = "scale_high";
 	private final static String READING_STYLE_L2R = "reading_l2r";
 	private final static String READING_STYLE_R2L = "reading_r2l";
 	private final static String SCROLL_PRIORITY_HORIZONTAL = "prio_h";
@@ -193,164 +194,134 @@ public class Viewer2 extends JPanel {
 		}
 	};
 
-	private Action goToFirstPageAction = new AbstractAction(SHOW_FIRST_PAGE) {
+	private class NavigateAction extends AbstractAction {
 		private static final long serialVersionUID = 1L;
-
-		public void actionPerformed(ActionEvent e) {
-			showFirstPage();
+		
+		public NavigateAction(String action) {
+			putValue(ACTION_KEY, action);
 		}
-	};
-
-	private Action goToLastPageAction = new AbstractAction(SHOW_LAST_PAGE) {
-		private static final long serialVersionUID = 1L;
-
+		
 		public void actionPerformed(ActionEvent e) {
-			showLastPage();
-		}
-	};
-
-	private Action goToPageAction = new AbstractAction(GO_TO_PAGE) {
-		private static final long serialVersionUID = 1L;
-
-		public void actionPerformed(ActionEvent e) {
-			String s = (String) JOptionPane.showInputDialog(f, "Go to page...",
-					"jMangaViewer", JOptionPane.QUESTION_MESSAGE, null, null,
-					comicBook.getCurrentPageNumber() + "");
-			try {
-				int goToPage = Integer.parseInt(s);
-				if (goToPage <= comicBook.getNumberOfPages()) {
-					showPage(goToPage);
-				}
-			} catch (Exception ex) {
-				ex.printStackTrace();
-			}
-		}
-	};
-	private Action goLeftAction = new AbstractAction(GO_LEFT) {
-		private static final long serialVersionUID = 1L;
-
-		public void actionPerformed(ActionEvent e) {
-			if (preferences.getReadingStyle() == Preferences.READING_LEFT_TO_RIGHT) {
-				showPreviousPage();
-			} else {
-				showNextPage();
-			}
-		}
-	};
-
-	private Action goRightAction = new AbstractAction(GO_RIGHT) {
-		private static final long serialVersionUID = 1L;
-
-		public void actionPerformed(ActionEvent e) {
-			if (preferences.getReadingStyle() == Preferences.READING_LEFT_TO_RIGHT) {
-				showNextPage();
-			} else {
-				showPreviousPage();
-			}
-		}
-	};
-
-	private Action goUpAction = new AbstractAction(GO_UP) {
-		private static final long serialVersionUID = 1L;
-
-		public void actionPerformed(ActionEvent e) {
-			updatePaintPosition(0, fixedScrollHeight());
-			renderWrapper();
-		}
-	};
-
-	private Action goDownAction = new AbstractAction(GO_DOWN) {
-		private static final long serialVersionUID = 1L;
-
-		public void actionPerformed(ActionEvent e) {
-			updatePaintPosition(0, -fixedScrollHeight());
-			renderWrapper();
-		}
-	};
-
-	private Action scrollAction = new AbstractAction(SCROLL) {
-		private static final long serialVersionUID = 1L;
-
-		public void actionPerformed(ActionEvent e) {
-			if (isScrollComplete()) {
-				showNextPage();
-			} else {
-				int deltaX = 0;
-				int deltaY = 0;
-				if (preferences.getScrollPriority() == Preferences.SCROLL_PRIORITY_VERTICAL) {
-					/*
-					 * If we are not at the (bottom) end of the image (and we're not
-					 * ignoring y), we go down. Otherwise, we move horizontally (either
-					 * right or left depending on configuration).
-					 */
-					if (!isVerticalScrollComplete() && !ignoreY) {
-						deltaY = -fixedScrollHeight();
-					} else {
-						/*
-						 * We reset y (if needed) and move horizontally. deltaY must be
-						 * brought back to the top of the screen. We know that we last
-						 * painted at y = (displayHeight - imageHeight) so that's what we
-						 * need to use as deltaY.
-						 */
-						if (!ignoreY) {
-							deltaY = imageHeight - displayHeight;
-						}
-						if (preferences.getReadingStyle() == Preferences.READING_RIGHT_TO_LEFT) {
-							deltaX = fixedScrollWidth();
-						} else {
-							deltaX = -fixedScrollWidth();
-						}
-					}
+			final String key = (String) getValue(ACTION_KEY);
+			if (SHOW_FIRST_PAGE.equals(key)) {
+				showFirstPage();
+			} else if (SHOW_LAST_PAGE.equals(key)) {
+				showLastPage();
+			} else if (GO_LEFT.equals(key)) {
+				/* Depends on reading style */
+				if (preferences.getReadingStyle() == Preferences.READING_LEFT_TO_RIGHT) {
+					showPreviousPage();
 				} else {
-					/*
-					 * First horizontally, then downward (resetting horizontal position).
-					 * If we're not at the far end of the image (depending on reading
-					 * style) and we're not ignoring x movements, we move horizontally
-					 * (depending on reading style). Otherwise, we go down resetting x.
-					 */
-					if (!isHorizontalScrollComplete() && !ignoreX) {
-						if (preferences.getReadingStyle() == Preferences.READING_RIGHT_TO_LEFT) {
-							deltaX = fixedScrollWidth();
-						} else {
-							deltaX = -fixedScrollWidth();
-						}
-					} else {
+					showNextPage();
+				}
+			} else if (GO_RIGHT.equals(key)) {
+				/* Depends on reading style */
+				if (preferences.getReadingStyle() == Preferences.READING_LEFT_TO_RIGHT) {
+					showNextPage();
+				} else {
+					showPreviousPage();
+				}
+			} else if (GO_UP.equals(key)) {
+				updatePaintPosition(0, fixedScrollHeight());
+				renderWrapper();
+			} else if (GO_DOWN.equals(key)) {
+				updatePaintPosition(0, -fixedScrollHeight());
+				renderWrapper();
+			} else if (SCROLL.equals(key)) {
+				if (isScrollComplete()) {
+					showNextPage();
+				} else {
+					int deltaX = 0;
+					int deltaY = 0;
+					if (preferences.getScrollPriority() == Preferences.SCROLL_PRIORITY_VERTICAL) {
 						/*
-						 * Reset x and go down.
+						 * If we are not at the (bottom) end of the image (and we're not
+						 * ignoring y), we go down. Otherwise, we move horizontally (either
+						 * right or left depending on configuration).
 						 */
-						if (!ignoreX) {
+						if (!isVerticalScrollComplete() && !ignoreY) {
+							deltaY = -fixedScrollHeight();
+						} else {
+							/*
+							 * We reset y (if needed) and move horizontally. deltaY must be
+							 * brought back to the top of the screen. We know that we last
+							 * painted at y = (displayHeight - imageHeight) so that's what we
+							 * need to use as deltaY.
+							 */
+							if (!ignoreY) {
+								deltaY = imageHeight - displayHeight;
+							}
 							if (preferences.getReadingStyle() == Preferences.READING_RIGHT_TO_LEFT) {
-								/*
-								 * We last painted at x = 0.
-								 */
-								deltaX = displayWidth - imageWidth;
+								deltaX = fixedScrollWidth();
 							} else {
-								/*
-								 * We last painted at - (imageWidth - displayWidth)
-								 */
-								deltaX = imageWidth - displayWidth;
+								deltaX = -fixedScrollWidth();
 							}
 						}
-						deltaY = -fixedScrollHeight();
+					} else {
+						/*
+						 * First horizontally, then downward (resetting horizontal position).
+						 * If we're not at the far end of the image (depending on reading
+						 * style) and we're not ignoring x movements, we move horizontally
+						 * (depending on reading style). Otherwise, we go down resetting x.
+						 */
+						if (!isHorizontalScrollComplete() && !ignoreX) {
+							if (preferences.getReadingStyle() == Preferences.READING_RIGHT_TO_LEFT) {
+								deltaX = fixedScrollWidth();
+							} else {
+								deltaX = -fixedScrollWidth();
+							}
+						} else {
+							/*
+							 * Reset x and go down.
+							 */
+							if (!ignoreX) {
+								if (preferences.getReadingStyle() == Preferences.READING_RIGHT_TO_LEFT) {
+									/*
+									 * We last painted at x = 0.
+									 */
+									deltaX = displayWidth - imageWidth;
+								} else {
+									/*
+									 * We last painted at - (imageWidth - displayWidth)
+									 */
+									deltaX = imageWidth - displayWidth;
+								}
+							}
+							deltaY = -fixedScrollHeight();
+						}
 					}
+					updatePaintPosition(deltaX, deltaY);
+					renderWrapper();
 				}
-				updatePaintPosition(deltaX, deltaY);
-				renderWrapper();
-			}
+			} // end-if: SCROLL
+			else if (GO_TO_PAGE.equals(key)) {
+				String s = (String) JOptionPane.showInputDialog(f, "Go to page...",
+						"jMangaViewer", JOptionPane.PLAIN_MESSAGE, null, null,
+						comicBook.getCurrentPageNumber() + "");
+				try {
+					int goToPage = Integer.parseInt(s);
+					if (goToPage <= comicBook.getNumberOfPages()) {
+						showPage(goToPage);
+					}
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
+			} // end-if: GO_TO_PAGE
 		}
-	};
-
+		
+	}
+	
 	private class ScaleFactorAction extends AbstractAction {
 		private static final long serialVersionUID = 1L;
 
 		public ScaleFactorAction(String action) {
 			System.out.println("scaleFactor salvo key=" + action);
-			putValue("jMangaViewer_key", action);
+			putValue(ACTION_KEY, action);
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			final String key = (String) getValue("jMangaViewer_key");
-			System.out.println("scaleFactor chiamato con key=" + key);
+			final String key = (String) getValue(ACTION_KEY);
+
 			if (SCALE_WIDTH.equals(key)) {
 				preferences.setScaleFactor(Preferences.SCALE_WIDTH);
 			} else if (SCALE_HEIGHT.equals(key)) {
@@ -371,17 +342,17 @@ public class Viewer2 extends JPanel {
 
 		public ScaleQualityAction(String action) {
 			System.out.println("scaleQuality salvo key=" + action);
-			putValue("jMangaViewer_key", action);
+			putValue(ACTION_KEY, action);
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			final String key = (String) getValue("jMangaViewer_key");
-			System.out.println("scaleQuality chimato con key=" + key);
-			if (SCALE_FAST.equals(key)) {
+			final String key = (String) getValue(ACTION_KEY);
+
+			if (QUALITY_FAST.equals(key)) {
 				preferences.setScaleQuality(Preferences.QUALITY_FAST);
-			} else if (SCALE_MEDIUM.equals(key)) {
+			} else if (QUALITY_MEDIUM.equals(key)) {
 				preferences.setScaleQuality(Preferences.QUALITY_MEDIUM);
-			} else if (SCALE_HIGH.equals(key)) {
+			} else if (QUALITY_HIGH.equals(key)) {
 				preferences.setScaleQuality(Preferences.QUALITY_HIGH);
 			}
 			load(comicBook.getCurrentPageURL());
@@ -394,11 +365,11 @@ public class Viewer2 extends JPanel {
 		private static final long serialVersionUID = 1L;
 
 		public ReadingStyleAction(String action) {
-			putValue("jMangaViewer_key", action);
+			putValue(ACTION_KEY, action);
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			final String key = (String) getValue("jMangaViewer_key");
+			final String key = (String) getValue(ACTION_KEY);
 			if (READING_STYLE_L2R.equals(key)) {
 				preferences.setReadingStyle(Preferences.READING_LEFT_TO_RIGHT);
 			} else if (READING_STYLE_R2L.equals(key)) {
@@ -411,11 +382,11 @@ public class Viewer2 extends JPanel {
 		private static final long serialVersionUID = 1L;
 
 		public ScrollPriorityAction(String action) {
-			putValue("jMangaViewer_key", action);
+			putValue(ACTION_KEY, action);
 		}
 
 		public void actionPerformed(ActionEvent e) {
-			final String key = (String) getValue("jMangaViewer_key");
+			final String key = (String) getValue(ACTION_KEY);
 			if (SCROLL_PRIORITY_HORIZONTAL.equals(key)) {
 				preferences.setScrollPriority(Preferences.SCROLL_PRIORITY_HORIZONTAL);
 			} else if (SCROLL_PRIORITY_VERTICAL.equals(key)) {
@@ -462,9 +433,9 @@ public class Viewer2 extends JPanel {
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_O, 0), SCALE_ORIGINAL);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_B, 0), SCALE_WINDOW);
 
-		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_1, 0), SCALE_FAST);
-		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_2, 0), SCALE_MEDIUM);
-		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_3, 0), SCALE_HIGH);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_1, 0), QUALITY_FAST);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_2, 0), QUALITY_MEDIUM);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_3, 0), QUALITY_HIGH);
 
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_L, 0),
 				READING_STYLE_L2R);
@@ -480,27 +451,30 @@ public class Viewer2 extends JPanel {
 		/* Actions */
 		getActionMap().put(EXIT, exitAction);
 		getActionMap().put(SHOW_HIDE, showHideAction);
-		getActionMap().put(GO_LEFT, goLeftAction);
-		getActionMap().put(GO_RIGHT, goRightAction);
-		getActionMap().put(GO_UP, goUpAction);
-		getActionMap().put(GO_DOWN, goDownAction);
-		getActionMap().put(GO_TO_PAGE, goToPageAction);
-		getActionMap().put(SHOW_FIRST_PAGE, goToFirstPageAction);
-		getActionMap().put(SHOW_LAST_PAGE, goToLastPageAction);
-		getActionMap().put(SCROLL, scrollAction);
+		
+		getActionMap().put(GO_LEFT, new NavigateAction(GO_LEFT));
+		getActionMap().put(GO_RIGHT, new NavigateAction(GO_RIGHT));
+		getActionMap().put(GO_UP, new NavigateAction(GO_UP));
+		getActionMap().put(GO_DOWN, new NavigateAction(GO_DOWN));
+		getActionMap().put(GO_TO_PAGE, new NavigateAction(GO_TO_PAGE));
+		getActionMap().put(SHOW_FIRST_PAGE, new NavigateAction(SHOW_FIRST_PAGE));
+		getActionMap().put(SHOW_LAST_PAGE, new NavigateAction(SHOW_LAST_PAGE));
+		getActionMap().put(SCROLL, new NavigateAction(SCROLL));
+		
 		getActionMap().put(SCALE_WIDTH, new ScaleFactorAction(SCALE_WIDTH));
 		getActionMap().put(SCALE_HEIGHT, new ScaleFactorAction(SCALE_HEIGHT));
 		getActionMap().put(SCALE_ORIGINAL, new ScaleFactorAction(SCALE_ORIGINAL));
 		getActionMap().put(SCALE_WINDOW, new ScaleFactorAction(SCALE_WINDOW));
 
-		getActionMap().put(SCALE_FAST, new ScaleQualityAction(SCALE_FAST));
-		getActionMap().put(SCALE_MEDIUM, new ScaleQualityAction(SCALE_MEDIUM));
-		getActionMap().put(SCALE_HIGH, new ScaleQualityAction(SCALE_HIGH));
+		getActionMap().put(QUALITY_FAST, new ScaleQualityAction(QUALITY_FAST));
+		getActionMap().put(QUALITY_MEDIUM, new ScaleQualityAction(QUALITY_MEDIUM));
+		getActionMap().put(QUALITY_HIGH, new ScaleQualityAction(QUALITY_HIGH));
 
 		getActionMap().put(READING_STYLE_L2R,
 				new ReadingStyleAction(READING_STYLE_L2R));
 		getActionMap().put(READING_STYLE_R2L,
 				new ReadingStyleAction(READING_STYLE_R2L));
+
 		getActionMap().put(SCROLL_PRIORITY_HORIZONTAL,
 				new ScrollPriorityAction(SCROLL_PRIORITY_HORIZONTAL));
 		getActionMap().put(SCROLL_PRIORITY_VERTICAL,
@@ -797,12 +771,6 @@ public class Viewer2 extends JPanel {
 	/*
 	 * 
 	 */
-	private void renderOLD(Graphics g) {
-		Rectangle bounds = f.getBounds();
-		g.setColor(Color.BLACK);
-		g.fillRect(bounds.x, bounds.y, bounds.width, bounds.height);
-	}
-
 	protected void renderWrapper() {
 		BufferStrategy strategy = f.getBufferStrategy();
 		Graphics g = strategy.getDrawGraphics();
@@ -811,7 +779,7 @@ public class Viewer2 extends JPanel {
 		g.dispose();
 	}
 
-	public void render(Graphics g) {
+	protected void render(Graphics g) {
 		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		if (screenImage != null) {
 			// if (pPaint != null) {
