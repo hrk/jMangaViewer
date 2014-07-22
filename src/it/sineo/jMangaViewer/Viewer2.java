@@ -21,7 +21,6 @@ import java.awt.Toolkit;
 import java.awt.Transparency;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
@@ -486,14 +485,6 @@ public class Viewer2 extends JPanel {
 		/*
 		 * Mouse listeners
 		 */
-		this.addMouseMotionListener(new MouseAdapter() {
-			@Override
-			public void mouseMoved(MouseEvent e) {
-				// Viewer2.this.setToolTipText("(" + e.getX() + "," + e.getY() + ")");
-				System.out.println("(" + e.getX() + "," + e.getY() + ")");
-			}
-		});
-
 		this.addMouseMotionListener(new MouseMotionListener() {
 			public void mouseDragged(MouseEvent e) {
 				if (mouseLastCheck == 0) {
