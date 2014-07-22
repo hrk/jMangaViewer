@@ -23,6 +23,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionListener;
+import java.awt.event.MouseWheelEvent;
+import java.awt.event.MouseWheelListener;
 import java.awt.event.WindowEvent;
 import java.awt.font.FontRenderContext;
 import java.awt.font.TextLayout;
@@ -92,8 +95,6 @@ public class Viewer2 extends JPanel {
 	private boolean isHiDPI;
 	private boolean dirty = true;
 
-	private final int maxLoadingTime = 6000;
-	private final int loadingSleepTime = 500;
 	private final int scrollPollingTime = 100;
 	/*
 	 * Mouse handling.
@@ -490,6 +491,77 @@ public class Viewer2 extends JPanel {
 			public void mouseMoved(MouseEvent e) {
 				// Viewer2.this.setToolTipText("(" + e.getX() + "," + e.getY() + ")");
 				System.out.println("(" + e.getX() + "," + e.getY() + ")");
+			}
+		});
+
+		this.addMouseMotionListener(new MouseMotionListener() {
+			public void mouseDragged(MouseEvent e) {
+				if (mouseLastCheck == 0) {
+					mouseX = e.getX();
+					mouseY = e.getY();
+					mouseLastCheck = e.getWhen();
+				} else {
+					int _dx = 0, _dy = 0;
+					if (e.getWhen() - mouseLastCheck > scrollPollingTime) {
+						mouseLastCheck = e.getWhen();
+						if (!ignoreX) {
+							_dx = e.getX() - mouseX;
+						}
+						mouseX = e.getX();
+						if (!ignoreY) {
+							_dy = e.getY() - mouseY;
+						}
+						mouseY = e.getY();
+						log.fine("detected mouse drag: dx = " + _dx + ", dy = " + _dy);
+						updatePaintPosition(_dx, _dy);
+						renderWrapper();
+					}
+				}
+			}
+
+			public void mouseMoved(MouseEvent e) {
+
+			}
+		});
+
+		this.addMouseWheelListener(new MouseWheelListener() {
+			int horizontalScrollAmount = 0, verticalScrollAmount = 0;
+			long mouseLastCheckScrollX = 0, mouseLastCheckScrollY = 0;
+			final int maskHorizontalScroll = MouseWheelEvent.SHIFT_DOWN_MASK;
+
+			public void mouseWheelMoved(MouseWheelEvent e) {
+				switch (e.getScrollType()) {
+					case MouseWheelEvent.WHEEL_BLOCK_SCROLL: {
+						log.severe("Unhandled scroll type: WHEEL_BLOCK_SCROLL; event="
+								+ e.toString());
+						break;
+					}
+					case MouseWheelEvent.WHEEL_UNIT_SCROLL: {
+						log.severe(e.toString());
+						if ((e.getModifiersEx() & maskHorizontalScroll) == maskHorizontalScroll) {
+							if (System.currentTimeMillis() - mouseLastCheckScrollX >= scrollPollingTime) {
+								updatePaintPosition(-horizontalScrollAmount, 0);
+								horizontalScrollAmount = 0;
+								mouseLastCheckScrollX = System.currentTimeMillis();
+								renderWrapper();
+							} else {
+								horizontalScrollAmount += e.getScrollAmount()
+										* e.getWheelRotation() * 20;
+							}
+						} else {
+							if (System.currentTimeMillis() - mouseLastCheckScrollY >= scrollPollingTime) {
+								updatePaintPosition(0, -verticalScrollAmount);
+								verticalScrollAmount = 0;
+								mouseLastCheckScrollY = System.currentTimeMillis();
+								renderWrapper();
+							} else {
+								verticalScrollAmount += e.getScrollAmount()
+										* e.getWheelRotation() * 20;
+							}
+						}
+						break;
+					}
+				}
 			}
 		});
 		display();
