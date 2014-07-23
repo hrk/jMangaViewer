@@ -33,6 +33,8 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -63,6 +65,7 @@ public class Viewer2 extends JPanel {
 	private final static String ACTION_KEY = "jMangaViewer_key";
 
 	private final static String EXIT = "exit";
+	private final static String SAVE_PICTURE = "save_picture";
 	private final static String SHOW_HIDE = "show_hide";
 	private final static String TOGGLE_OSD = "toggle_old";
 	private final static String GO_LEFT = "go_left";
@@ -182,6 +185,24 @@ public class Viewer2 extends JPanel {
 		}
 	};
 
+	private Action savePictureAction = new AbstractAction(SAVE_PICTURE) {
+		private static final long serialVersionUID = 1L;
+		
+		public void actionPerformed(ActionEvent e) {
+			// TODO: don't do this on the UI thread :(
+			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+			log.fine("requested to save current picture: " + comicBook.getCurrentPageURL());
+			log.fine("file is: " + comicBook.getCurrentPageURL().getFile());
+			File outfile = new File(getCurrentImageName());
+			try {
+				ImageIO.write(ImageIO.read(comicBook.getCurrentPageURL()), "png", outfile);
+			} catch (IOException ioex) {
+				ioex.printStackTrace();
+			}
+			setCursor(Cursor.getDefaultCursor());
+		}
+	};
+	
 	private Action toggleOSDAction = new AbstractAction(TOGGLE_OSD) {
 		private static final long serialVersionUID = 1L;
 
@@ -416,6 +437,8 @@ public class Viewer2 extends JPanel {
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Q, 0), EXIT);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), EXIT);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_F, 0), SHOW_HIDE);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_S, 0), SAVE_PICTURE);
+
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0), GO_RIGHT);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0), GO_LEFT);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), GO_UP);
@@ -429,6 +452,7 @@ public class Viewer2 extends JPanel {
 				SHOW_LAST_PAGE);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_P, 0), GO_TO_PAGE);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), SCROLL);
+
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0), SCALE_WIDTH);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_H, 0), SCALE_HEIGHT);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_O, 0), SCALE_ORIGINAL);
@@ -452,6 +476,7 @@ public class Viewer2 extends JPanel {
 		/* Actions */
 		getActionMap().put(EXIT, exitAction);
 		getActionMap().put(SHOW_HIDE, showHideAction);
+		getActionMap().put(SAVE_PICTURE, savePictureAction);
 
 		getActionMap().put(GO_LEFT, new NavigateAction(GO_LEFT));
 		getActionMap().put(GO_RIGHT, new NavigateAction(GO_RIGHT));
