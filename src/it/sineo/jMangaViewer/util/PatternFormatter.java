@@ -18,13 +18,11 @@ public class PatternFormatter extends Formatter {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.util.logging.Formatter#format(java.util.logging.LogRecord)
 	 */
 	public String format(LogRecord record) {
-		return MessageFormat.format("{0} {1} {2}#{3}(n/a): {4}\n",
-				sdf.format(record.getMillis()), record.getLevel(),
-				record.getSourceClassName(), record.getSourceMethodName(),
+		return MessageFormat.format("{0} {1} {2}#{3}(n/a): {4}\n", sdf.format(record.getMillis()),
+				record.getLevel(), record.getSourceClassName(), record.getSourceMethodName(),
 				record.getMessage());
 	}
 }

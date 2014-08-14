@@ -10,7 +10,8 @@ import java.io.FilenameFilter;
 /**
  * @author wesia92
  */
-public class ComicBookFileFilter extends javax.swing.filechooser.FileFilter implements FileFilter, FilenameFilter {
+public class ComicBookFileFilter extends javax.swing.filechooser.FileFilter implements FileFilter,
+		FilenameFilter {
 
 	/*
 	 * (non-Javadoc)

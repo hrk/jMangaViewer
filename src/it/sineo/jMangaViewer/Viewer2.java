@@ -57,8 +57,7 @@ import javax.swing.KeyStroke;
 public class Viewer2 extends JPanel {
 	private static final long serialVersionUID = 1L;
 
-	private final static Logger log = Logger.getLogger(Viewer2.class
-			.getCanonicalName());
+	private final static Logger log = Logger.getLogger(Viewer2.class.getCanonicalName());
 
 	private final static int NUMBER_OF_BUFFERS = 2;
 
@@ -81,6 +80,8 @@ public class Viewer2 extends JPanel {
 	private final static String SCALE_HEIGHT = "scale_height";
 	private final static String SCALE_ORIGINAL = "scale_original";
 	private final static String SCALE_WINDOW = "scale_window";
+	private final static String SCALE_INCREASE = "scale_increase";
+	private final static String SCALE_DECREASE = "scale_decrease";
 	/* Scale quality */
 	private final static String QUALITY_FAST = "scale_fast";
 	private final static String QUALITY_MEDIUM = "scale_medium";
@@ -125,10 +126,8 @@ public class Viewer2 extends JPanel {
 	/*
 	 * Paint related objects.
 	 */
-	AlphaComposite compositeTransparent = AlphaComposite.getInstance(
-			AlphaComposite.SRC_OVER, 0.6F);
-	AlphaComposite compositeOpaque = AlphaComposite.getInstance(
-			AlphaComposite.SRC_OVER, 1.0F);
+	AlphaComposite compositeTransparent = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6F);
+	AlphaComposite compositeOpaque = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0F);
 	Paint blackPaint = Color.BLACK;
 	Paint whitePaint = new Color(0xFF, 0xFF, 0xFF, 0xFF);
 	Font font;
@@ -187,7 +186,7 @@ public class Viewer2 extends JPanel {
 
 	private Action savePictureAction = new AbstractAction(SAVE_PICTURE) {
 		private static final long serialVersionUID = 1L;
-		
+
 		public void actionPerformed(ActionEvent e) {
 			// TODO: don't do this on the UI thread :(
 			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
@@ -202,7 +201,7 @@ public class Viewer2 extends JPanel {
 			setCursor(Cursor.getDefaultCursor());
 		}
 	};
-	
+
 	private Action toggleOSDAction = new AbstractAction(TOGGLE_OSD) {
 		private static final long serialVersionUID = 1L;
 
@@ -319,9 +318,8 @@ public class Viewer2 extends JPanel {
 				}
 			} // end-if: SCROLL
 			else if (GO_TO_PAGE.equals(key)) {
-				String s = (String) JOptionPane.showInputDialog(f, "Go to page...",
-						"jMangaViewer", JOptionPane.PLAIN_MESSAGE, null, null,
-						comicBook.getCurrentPageNumber() + "");
+				String s = (String) JOptionPane.showInputDialog(f, "Go to page...", "jMangaViewer",
+						JOptionPane.PLAIN_MESSAGE, null, null, comicBook.getCurrentPageNumber() + "");
 				try {
 					int goToPage = Integer.parseInt(s);
 					if (goToPage <= comicBook.getNumberOfPages()) {
@@ -444,12 +442,9 @@ public class Viewer2 extends JPanel {
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0), GO_UP);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0), GO_UP);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0), GO_DOWN);
-		getInputMap()
-				.put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), GO_DOWN);
-		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0),
-				SHOW_FIRST_PAGE);
-		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0),
-				SHOW_LAST_PAGE);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0), GO_DOWN);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_HOME, 0), SHOW_FIRST_PAGE);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0), SHOW_LAST_PAGE);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_P, 0), GO_TO_PAGE);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), SCROLL);
 
@@ -462,14 +457,10 @@ public class Viewer2 extends JPanel {
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_2, 0), QUALITY_MEDIUM);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_3, 0), QUALITY_HIGH);
 
-		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_L, 0),
-				READING_STYLE_L2R);
-		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0),
-				READING_STYLE_R2L);
-		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_N, 0),
-				SCROLL_PRIORITY_VERTICAL);
-		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0),
-				SCROLL_PRIORITY_HORIZONTAL);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_L, 0), READING_STYLE_L2R);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_R, 0), READING_STYLE_R2L);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_N, 0), SCROLL_PRIORITY_VERTICAL);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, 0), SCROLL_PRIORITY_HORIZONTAL);
 
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_D, 0), TOGGLE_OSD);
 
@@ -496,15 +487,13 @@ public class Viewer2 extends JPanel {
 		getActionMap().put(QUALITY_MEDIUM, new ScaleQualityAction(QUALITY_MEDIUM));
 		getActionMap().put(QUALITY_HIGH, new ScaleQualityAction(QUALITY_HIGH));
 
-		getActionMap().put(READING_STYLE_L2R,
-				new ReadingStyleAction(READING_STYLE_L2R));
-		getActionMap().put(READING_STYLE_R2L,
-				new ReadingStyleAction(READING_STYLE_R2L));
+		getActionMap().put(READING_STYLE_L2R, new ReadingStyleAction(READING_STYLE_L2R));
+		getActionMap().put(READING_STYLE_R2L, new ReadingStyleAction(READING_STYLE_R2L));
 
 		getActionMap().put(SCROLL_PRIORITY_HORIZONTAL,
 				new ScrollPriorityAction(SCROLL_PRIORITY_HORIZONTAL));
-		getActionMap().put(SCROLL_PRIORITY_VERTICAL,
-				new ScrollPriorityAction(SCROLL_PRIORITY_VERTICAL));
+		getActionMap()
+				.put(SCROLL_PRIORITY_VERTICAL, new ScrollPriorityAction(SCROLL_PRIORITY_VERTICAL));
 
 		getActionMap().put(TOGGLE_OSD, toggleOSDAction);
 
@@ -549,8 +538,7 @@ public class Viewer2 extends JPanel {
 			public void mouseWheelMoved(MouseWheelEvent e) {
 				switch (e.getScrollType()) {
 					case MouseWheelEvent.WHEEL_BLOCK_SCROLL: {
-						log.severe("Unhandled scroll type: WHEEL_BLOCK_SCROLL; event="
-								+ e.toString());
+						log.severe("Unhandled scroll type: WHEEL_BLOCK_SCROLL; event=" + e.toString());
 						break;
 					}
 					case MouseWheelEvent.WHEEL_UNIT_SCROLL: {
@@ -562,8 +550,7 @@ public class Viewer2 extends JPanel {
 								mouseLastCheckScrollX = System.currentTimeMillis();
 								renderWrapper();
 							} else {
-								horizontalScrollAmount += e.getScrollAmount()
-										* e.getWheelRotation() * 20;
+								horizontalScrollAmount += e.getScrollAmount() * e.getWheelRotation() * 20;
 							}
 						} else {
 							if (System.currentTimeMillis() - mouseLastCheckScrollY >= scrollPollingTime) {
@@ -572,8 +559,7 @@ public class Viewer2 extends JPanel {
 								mouseLastCheckScrollY = System.currentTimeMillis();
 								renderWrapper();
 							} else {
-								verticalScrollAmount += e.getScrollAmount()
-										* e.getWheelRotation() * 20;
+								verticalScrollAmount += e.getScrollAmount() * e.getWheelRotation() * 20;
 							}
 						}
 						break;
@@ -608,8 +594,7 @@ public class Viewer2 extends JPanel {
 	}
 
 	protected void setupFont() {
-		String[] fontNames = { "Calibri", "Tahoma", "Ubuntu", "Droid Sans",
-				"SansSerif" };
+		String[] fontNames = { "Calibri", "Tahoma", "Ubuntu", "Droid Sans", "SansSerif" };
 		for (String fontName : fontNames) {
 			Font f = new Font(fontName, Font.PLAIN, strokeWidth);
 			if (!"Dialog".equals(f.getFamily())) {
@@ -659,17 +644,16 @@ public class Viewer2 extends JPanel {
 				log.fine("scaling to fit height of " + displayHeight);
 				// screenImage = original.getScaledInstance(-1, displayHeight,
 				// preferences.getScaleQuality());
-				screenImage = getScaledInstance(original,
-						(displayHeight * _imageWidth / _imageHeight), displayHeight, hint,
-						false);
+				screenImage = getScaledInstance(original, (displayHeight * _imageWidth / _imageHeight),
+						displayHeight, hint, false);
 				break;
 			}
 			case Preferences.SCALE_WIDTH: {
 				log.fine("scaling to fit width of " + displayWidth);
 				// screenImage = original.getScaledInstance(displayWidth, -1,
 				// preferences.getScaleQuality());
-				screenImage = getScaledInstance(original, displayWidth, (displayWidth
-						* _imageHeight / _imageWidth), hint, false);
+				screenImage = getScaledInstance(original, displayWidth,
+						(displayWidth * _imageHeight / _imageWidth), hint, false);
 				break;
 			}
 			case Preferences.SCALE_WINDOW: {
@@ -679,14 +663,14 @@ public class Viewer2 extends JPanel {
 					log.fine("scaling to width");
 					// screenImage = original.getScaledInstance(displayWidth, -1,
 					// preferences.getScaleQuality());
-					screenImage = getScaledInstance(original, displayWidth, (displayWidth
-							* _imageHeight / _imageWidth), hint, false);
+					screenImage = getScaledInstance(original, displayWidth,
+							(displayWidth * _imageHeight / _imageWidth), hint, false);
 				} else {
 					log.fine("scaling to height");
 					// screenImage = original.getScaledInstance(-1, displayHeight,
 					// preferences.getScaleQuality());
-					screenImage = getScaledInstance(original, (displayHeight
-							* _imageWidth / _imageHeight), displayHeight, hint, false);
+					screenImage = getScaledInstance(original, (displayHeight * _imageWidth / _imageHeight),
+							displayHeight, hint, false);
 				}
 				break;
 			}
@@ -704,8 +688,7 @@ public class Viewer2 extends JPanel {
 
 		int originalWidth = original.getWidth(this);
 		log.fine("original width: " + originalWidth);
-		zoomFactor = percFormat
-				.format((double) imageWidth / (double) originalWidth);
+		zoomFactor = percFormat.format((double) imageWidth / (double) originalWidth);
 
 		if (imageWidth <= displayWidth) {
 			ignoreX = true;
@@ -724,8 +707,7 @@ public class Viewer2 extends JPanel {
 			overlayThread.interrupt();
 		}
 		if (pLastPaint == null) {
-			log.fine("first display of image, deltaX=" + deltaX + ", deltaY="
-					+ deltaY);
+			log.fine("first display of image, deltaX=" + deltaX + ", deltaY=" + deltaY);
 			/*
 			 * First display of the image.
 			 */
@@ -743,8 +725,7 @@ public class Viewer2 extends JPanel {
 			pPaint = new Point(x, y);
 			log.fine("calculated starting point " + pPaint);
 		} else {
-			log.fine("subsequent display of image, deltaX=" + deltaX + ", deltaY="
-					+ deltaY);
+			log.fine("subsequent display of image, deltaX=" + deltaX + ", deltaY=" + deltaY);
 			int x = pLastPaint.x;
 
 			if (!ignoreX) {
@@ -882,8 +863,8 @@ public class Viewer2 extends JPanel {
 				boolean complete = g.drawImage(screenImage, pPaint.x, pPaint.y, /* this */
 						f);
 				long original_t1 = System.currentTimeMillis();
-				log.fine("time to draw original: " + (original_t1 - original_t0)
-						+ " ms (complete? " + complete + ")");
+				log.fine("time to draw original: " + (original_t1 - original_t0) + " ms (complete? "
+						+ complete + ")");
 				/*
 				 * Shape and page info preparations.
 				 */
@@ -912,14 +893,12 @@ public class Viewer2 extends JPanel {
 							break;
 						}
 					}
-					complete = g2.drawImage(screenImage, pPaint.x, pPaint.y, imageWidth,
-							imageHeight, f);
+					complete = g2.drawImage(screenImage, pPaint.x, pPaint.y, imageWidth, imageHeight, f);
 					long upscaling_t1 = System.currentTimeMillis();
-					log.fine("time to draw upscaled: " + (upscaling_t1 - upscaling_t0)
-							+ " ms (complete? " + complete + ")");
+					log.fine("time to draw upscaled: " + (upscaling_t1 - upscaling_t0) + " ms (complete? "
+							+ complete + ")");
 				}
-				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-						RenderingHints.VALUE_ANTIALIAS_ON);
+				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 				/*
 				 * OnScreenDisplay: page count and zoom factor.
 				 */
@@ -927,62 +906,43 @@ public class Viewer2 extends JPanel {
 					FontRenderContext frc = g2.getFontRenderContext();
 
 					TextLayout tlPageCount = new TextLayout(pageCountText(), font, frc);
-					double pageCountBoxWidth = tlPageCount.getBounds().getWidth()
-							+ strokeWidth * 0.8D;
-					double pageCountBoxHeight = tlPageCount.getBounds().getHeight()
-							+ strokeWidth * 0.8D;
+					double pageCountBoxWidth = tlPageCount.getBounds().getWidth() + strokeWidth * 0.8D;
+					double pageCountBoxHeight = tlPageCount.getBounds().getHeight() + strokeWidth * 0.8D;
 					double pageCountBoxArc = strokeWidth;
 					double pageCountBoxX = displayWidth - pageCountBoxWidth - strokeWidth;// strokeWidth;
-					double pageCountBoxY = displayHeight - pageCountBoxHeight
-							- strokeWidth; // strokeWidth;
+					double pageCountBoxY = displayHeight - pageCountBoxHeight - strokeWidth; // strokeWidth;
 					double pageCountX = pageCountBoxX + pageCountBoxWidth / 2
-							- tlPageCount.getBounds().getWidth() / 2
-							- tlPageCount.getBounds().getX();
+							- tlPageCount.getBounds().getWidth() / 2 - tlPageCount.getBounds().getX();
 					double pageCountY = pageCountBoxY + pageCountBoxHeight / 2
-							- tlPageCount.getBounds().getHeight() / 2
-							- tlPageCount.getBounds().getY();
-					Shape boxPageCount = new RoundRectangle2D.Double(pageCountBoxX,
-							pageCountBoxY, pageCountBoxWidth, pageCountBoxHeight,
-							pageCountBoxArc, pageCountBoxArc);
+							- tlPageCount.getBounds().getHeight() / 2 - tlPageCount.getBounds().getY();
+					Shape boxPageCount = new RoundRectangle2D.Double(pageCountBoxX, pageCountBoxY,
+							pageCountBoxWidth, pageCountBoxHeight, pageCountBoxArc, pageCountBoxArc);
 
 					TextLayout tlZoomFactor = new TextLayout(zoomFactor, font, frc);
-					double zoomFactorBoxWidth = tlZoomFactor.getBounds().getWidth()
-							+ strokeWidth * 0.8D;
-					double zoomFactorBoxHeight = tlZoomFactor.getBounds().getHeight()
-							+ strokeWidth * 0.8D;
+					double zoomFactorBoxWidth = tlZoomFactor.getBounds().getWidth() + strokeWidth * 0.8D;
+					double zoomFactorBoxHeight = tlZoomFactor.getBounds().getHeight() + strokeWidth * 0.8D;
 					double zoomFactorBoxArc = strokeWidth;
-					double zoomFactorBoxX = displayWidth - zoomFactorBoxWidth
-							- strokeWidth;
+					double zoomFactorBoxX = displayWidth - zoomFactorBoxWidth - strokeWidth;
 					double zoomFactorBoxY = strokeWidth;
 					double zoomFactorX = zoomFactorBoxX + zoomFactorBoxWidth / 2
-							- tlZoomFactor.getBounds().getWidth() / 2
-							- tlZoomFactor.getBounds().getX();
+							- tlZoomFactor.getBounds().getWidth() / 2 - tlZoomFactor.getBounds().getX();
 					double zoomFactorY = zoomFactorBoxY + zoomFactorBoxHeight / 2
-							- tlZoomFactor.getBounds().getHeight() / 2
-							- tlZoomFactor.getBounds().getY();
-					Shape boxZoomFactor = new RoundRectangle2D.Double(zoomFactorBoxX,
-							zoomFactorBoxY, zoomFactorBoxWidth, zoomFactorBoxHeight,
-							zoomFactorBoxArc, zoomFactorBoxArc);
+							- tlZoomFactor.getBounds().getHeight() / 2 - tlZoomFactor.getBounds().getY();
+					Shape boxZoomFactor = new RoundRectangle2D.Double(zoomFactorBoxX, zoomFactorBoxY,
+							zoomFactorBoxWidth, zoomFactorBoxHeight, zoomFactorBoxArc, zoomFactorBoxArc);
 
-					TextLayout tlFilename = new TextLayout(getCurrentImageName(), font,
-							frc);
-					double filenameBoxWidth = tlFilename.getBounds().getWidth()
-							+ strokeWidth * 0.8D;
-					double filenameBoxHeight = tlFilename.getBounds().getHeight()
-							+ strokeWidth * 0.8D;
+					TextLayout tlFilename = new TextLayout(getCurrentImageName(), font, frc);
+					double filenameBoxWidth = tlFilename.getBounds().getWidth() + strokeWidth * 0.8D;
+					double filenameBoxHeight = tlFilename.getBounds().getHeight() + strokeWidth * 0.8D;
 					double filenameBoxArc = strokeWidth;
 					double filenameBoxX = strokeWidth;
-					double filenameBoxY = displayHeight - pageCountBoxHeight
-							- strokeWidth; // strokeWidth;
+					double filenameBoxY = displayHeight - pageCountBoxHeight - strokeWidth; // strokeWidth;
 					double filenameX = filenameBoxX + filenameBoxWidth / 2
-							- tlFilename.getBounds().getWidth() / 2
-							- tlFilename.getBounds().getX();
+							- tlFilename.getBounds().getWidth() / 2 - tlFilename.getBounds().getX();
 					double filenameY = filenameBoxY + filenameBoxHeight / 2
-							- tlFilename.getBounds().getHeight() / 2
-							- tlFilename.getBounds().getY();
-					Shape boxFilename = new RoundRectangle2D.Double(filenameBoxX,
-							filenameBoxY, filenameBoxWidth, filenameBoxHeight,
-							filenameBoxArc, filenameBoxArc);
+							- tlFilename.getBounds().getHeight() / 2 - tlFilename.getBounds().getY();
+					Shape boxFilename = new RoundRectangle2D.Double(filenameBoxX, filenameBoxY,
+							filenameBoxWidth, filenameBoxHeight, filenameBoxArc, filenameBoxArc);
 
 					g2.setComposite(compositeTransparent);
 					g2.setPaint(blackPaint);
@@ -999,13 +959,12 @@ public class Viewer2 extends JPanel {
 					/*
 					 * Prepare a square background bounding box for the shape.
 					 */
-					int maxDimension = shape.getBounds().height > shape.getBounds().width ? shape
-							.getBounds().height : shape.getBounds().width;
+					int maxDimension = shape.getBounds().height > shape.getBounds().width ? shape.getBounds().height
+							: shape.getBounds().width;
 					int boundingBoxSize = maxDimension + strokeWidth * 6;
-					Shape boundingBox = new RoundRectangle2D.Float(
-							(displayWidth - boundingBoxSize) / 2,
-							(displayHeight - boundingBoxSize) / 2, boundingBoxSize,
-							boundingBoxSize, arcLength, arcLength);
+					Shape boundingBox = new RoundRectangle2D.Float((displayWidth - boundingBoxSize) / 2,
+							(displayHeight - boundingBoxSize) / 2, boundingBoxSize, boundingBoxSize, arcLength,
+							arcLength);
 					/*
 					 * Set a transparent composite, then draw/fill the background box.
 					 */
@@ -1017,8 +976,7 @@ public class Viewer2 extends JPanel {
 					 */
 					g2.setComposite(compositeOpaque);
 					g2.setPaint(whitePaint);
-					g2.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_ROUND,
-							BasicStroke.JOIN_ROUND));
+					g2.setStroke(new BasicStroke(strokeWidth, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
 
 					AffineTransform center = AffineTransform.getTranslateInstance(
 							(displayWidth - shape.getBounds().width) / 2,
@@ -1056,8 +1014,7 @@ public class Viewer2 extends JPanel {
 			// Pad with spaces:
 			byte[] b = new byte[of.length()];
 			Arrays.fill(b, 0, b.length, (byte) ' ');
-			System
-					.arraycopy(pg.getBytes(), 0, b, b.length - pg.length(), pg.length());
+			System.arraycopy(pg.getBytes(), 0, b, b.length - pg.length(), pg.length());
 			pg = new String(b);
 		}
 		// TODO: move this to a resources file.
@@ -1092,8 +1049,7 @@ public class Viewer2 extends JPanel {
 		p.transform(resize);
 
 		if (preferences.getReadingStyle() == Preferences.READING_LEFT_TO_RIGHT) {
-			AffineTransform mirror = new AffineTransform(-1, 0, 0, 1,
-					p.getBounds().width, 0);
+			AffineTransform mirror = new AffineTransform(-1, 0, 0, 1, p.getBounds().width, 0);
 			p.transform(mirror);
 		}
 		return p;
@@ -1102,8 +1058,7 @@ public class Viewer2 extends JPanel {
 	private GeneralPath startOfComicBookPath() {
 		GeneralPath p = endOfComicBookPath();
 
-		AffineTransform mirror = new AffineTransform(-1, 0, 0, 1,
-				p.getBounds().width, 0);
+		AffineTransform mirror = new AffineTransform(-1, 0, 0, 1, p.getBounds().width, 0);
 		p.transform(mirror);
 
 		return p;
@@ -1133,8 +1088,7 @@ public class Viewer2 extends JPanel {
 				return "2.0".equals(Toolkit.getDefaultToolkit().getDesktopProperty(
 						"apple.awt.contentScaleFactor"));
 			} else if (vendor.indexOf("Oracle") != -1) {
-				GraphicsEnvironment env = GraphicsEnvironment
-						.getLocalGraphicsEnvironment();
+				GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 				final GraphicsDevice device = env.getDefaultScreenDevice();
 				try {
 					Field field = device.getClass().getDeclaredField("scale");
@@ -1165,7 +1119,7 @@ public class Viewer2 extends JPanel {
 
 	/**
 	 * Convenience method that returns a scaled instance of the provided
-	 * {@code BufferedImage}.
+	 * {@code BufferedImage} .
 	 * 
 	 * @param img
 	 *          the original image to be scaled
@@ -1187,8 +1141,8 @@ public class Viewer2 extends JPanel {
 	 *          generally only when the {@code BILINEAR} hint is specified)
 	 * @return a scaled version of the original {@code BufferedImage}
 	 */
-	public BufferedImage getScaledInstance(BufferedImage img, int targetWidth,
-			int targetHeight, Object hint, boolean higherQuality) {
+	public BufferedImage getScaledInstance(BufferedImage img, int targetWidth, int targetHeight,
+			Object hint, boolean higherQuality) {
 		int type = (img.getTransparency() == Transparency.OPAQUE) ? BufferedImage.TYPE_INT_RGB
 				: BufferedImage.TYPE_INT_ARGB;
 		BufferedImage ret = (BufferedImage) img;

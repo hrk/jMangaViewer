@@ -95,7 +95,8 @@ public class Launcher {
 			}
 		}
 		if (selectedFile == null) {
-			System.err.println("Usage: java " + Launcher.class.getCanonicalName() + " [file | directory]");
+			System.err
+					.println("Usage: java " + Launcher.class.getCanonicalName() + " [file | directory]");
 			System.exit(-1);
 		} else {
 			log.fine("selected file: " + selectedFile);
@@ -105,15 +106,16 @@ public class Launcher {
 			}
 			try {
 				final ComicBook cb = buildComicBook(selectedFile);
-//				new Viewer(cb, new Preferences());
+				// new Viewer(cb, new Preferences());
 				EventQueue.invokeLater(new Runnable() {
 					public void run() {
-						new Viewer2(cb, new Preferences())/*.display()*/;
+						new Viewer2(cb, new Preferences())/* .display() */;
 					}
 				});
 			} catch (IOException ioex) {
 				ioex.printStackTrace();
-				JOptionPane.showMessageDialog(null, selectedFile + " could not be opened. Error is: " + ioex);
+				JOptionPane.showMessageDialog(null, selectedFile + " could not be opened. Error is: "
+						+ ioex);
 			}
 		}
 	}
@@ -159,7 +161,8 @@ public class Launcher {
 						if (ImageFileFilter.fileIsSupportedImage(entry.getFileNameString())) {
 							File fDummy = new File(entry.getFileNameString());
 							log.fine("fDummy: " + fDummy.toURI());
-							URL url = new URL("rar", null, -1, buildPath(file, entry.getFileNameString()), new Handler());
+							URL url = new URL("rar", null, -1, buildPath(file, entry.getFileNameString()),
+									new Handler());
 							// log.fine("adding " + url.toString());
 							urls.add(url);
 						}

@@ -9,8 +9,7 @@ public class ComicBookPageComparator implements Comparator<URL> {
 
 	private Pattern pattern = Pattern.compile("(.*)([\\d]+)(.*)");
 
-	private final static Logger log = Logger
-			.getLogger(ComicBookPageComparator.class.getName());
+	private final static Logger log = Logger.getLogger(ComicBookPageComparator.class.getName());
 
 	public int compare(URL url1, URL url2) {
 		final String s1 = url1.toExternalForm();

@@ -51,8 +51,7 @@ import javax.swing.JOptionPane;
 
 public class Viewer extends JFrame {
 
-	private final static Logger log = Logger.getLogger(Viewer.class
-			.getCanonicalName());
+	private final static Logger log = Logger.getLogger(Viewer.class.getCanonicalName());
 	/**
 	 * 
 	 */
@@ -94,10 +93,8 @@ public class Viewer extends JFrame {
 	/*
 	 * Paint related objects.
 	 */
-	AlphaComposite compositeTransparent = AlphaComposite.getInstance(
-			AlphaComposite.SRC_OVER, 0.6F);
-	AlphaComposite compositeOpaque = AlphaComposite.getInstance(
-			AlphaComposite.SRC_OVER, 1.0F);
+	AlphaComposite compositeTransparent = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.6F);
+	AlphaComposite compositeOpaque = AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1.0F);
 	Paint blackPaint = Color.BLACK;
 	Paint whitePaint = new Color(0xFF, 0xFF, 0xFF, 0xFF);
 	Font font = new Font("SansSerif", Font.PLAIN, strokeWidth);
@@ -114,8 +111,7 @@ public class Viewer extends JFrame {
 
 		this.isHiDPI = isHiDPI();
 
-		String[] fontNames = { "Calibri", "Tahoma", "Ubuntu", "Droid Sans",
-				"SansSerif" };
+		String[] fontNames = { "Calibri", "Tahoma", "Ubuntu", "Droid Sans", "SansSerif" };
 		for (String fontName : fontNames) {
 			Font f = new Font(fontName, Font.PLAIN, strokeWidth);
 			if (!"Dialog".equals(f.getFamily())) {
@@ -183,14 +179,12 @@ public class Viewer extends JFrame {
 		switch (preferences.getScaleFactor()) {
 			case Preferences.SCALE_HEIGHT: {
 				log.fine("scaling to fit height of " + displayHeight);
-				screenImage = original.getScaledInstance(-1, displayHeight,
-						preferences.getScaleQuality());
+				screenImage = original.getScaledInstance(-1, displayHeight, preferences.getScaleQuality());
 				break;
 			}
 			case Preferences.SCALE_WIDTH: {
 				log.fine("scaling to fit width of " + displayWidth);
-				screenImage = original.getScaledInstance(displayWidth, -1,
-						preferences.getScaleQuality());
+				screenImage = original.getScaledInstance(displayWidth, -1, preferences.getScaleQuality());
 				break;
 			}
 			case Preferences.SCALE_WINDOW: {
@@ -201,8 +195,7 @@ public class Viewer extends JFrame {
 					try {
 						if (System.currentTimeMillis() - t0 > maxLoadingTime) {
 							throw new InterruptedException(
-									"Loading time exceeded, problems arised while loading "
-											+ imageURL);
+									"Loading time exceeded, problems arised while loading " + imageURL);
 						}
 						log.fine("image is not yet ready, going to sleep");
 						Thread.sleep(loadingSleepTime);
@@ -211,16 +204,14 @@ public class Viewer extends JFrame {
 						break;
 					}
 				} // end-while
-				log.fine("image loaded: " + original.getWidth(this) + "x"
-						+ original.getHeight(this));
+				log.fine("image loaded: " + original.getWidth(this) + "x" + original.getHeight(this));
 				if (original.getWidth(this) > original.getHeight(this)) {
 					log.fine("scaling to width");
-					screenImage = original.getScaledInstance(displayWidth, -1,
-							preferences.getScaleQuality());
+					screenImage = original.getScaledInstance(displayWidth, -1, preferences.getScaleQuality());
 				} else {
 					log.fine("scaling to height");
-					screenImage = original.getScaledInstance(-1, displayHeight,
-							preferences.getScaleQuality());
+					screenImage = original
+							.getScaledInstance(-1, displayHeight, preferences.getScaleQuality());
 				}
 				break;
 			}
@@ -237,9 +228,8 @@ public class Viewer extends JFrame {
 		while ((checkImage(screenImage, this) & ImageObserver.ALLBITS) == 0) {
 			try {
 				if (System.currentTimeMillis() - t0 > maxLoadingTime) {
-					throw new InterruptedException(
-							"Loading time exceeded, problems arised while loading "
-									+ imageURL);
+					throw new InterruptedException("Loading time exceeded, problems arised while loading "
+							+ imageURL);
 				}
 				log.fine("image not yet loaded, going to sleep");
 				Thread.sleep(loadingSleepTime);
@@ -255,8 +245,7 @@ public class Viewer extends JFrame {
 
 		int originalWidth = original.getWidth(this);
 		log.fine("original width: " + originalWidth);
-		zoomFactor = percFormat
-				.format((double) imageWidth / (double) originalWidth);
+		zoomFactor = percFormat.format((double) imageWidth / (double) originalWidth);
 
 		if (imageWidth <= displayWidth) {
 			ignoreX = true;
@@ -273,8 +262,7 @@ public class Viewer extends JFrame {
 			overlayThread.interrupt();
 		}
 		if (pLastPaint == null) {
-			log.fine("first display of image, deltaX=" + deltaX + ", deltaY="
-					+ deltaY);
+			log.fine("first display of image, deltaX=" + deltaX + ", deltaY=" + deltaY);
 			/*
 			 * First display of the image.
 			 */
@@ -292,8 +280,7 @@ public class Viewer extends JFrame {
 			pPaint = new Point(x, y);
 			log.fine("calculated starting point " + pPaint);
 		} else {
-			log.fine("subsequent display of image, deltaX=" + deltaX + ", deltaY="
-					+ deltaY);
+			log.fine("subsequent display of image, deltaX=" + deltaX + ", deltaY=" + deltaY);
 			int x = pLastPaint.x;
 
 			if (!ignoreX) {
@@ -356,8 +343,7 @@ public class Viewer extends JFrame {
 		p.transform(resize);
 
 		if (preferences.getReadingStyle() == Preferences.READING_LEFT_TO_RIGHT) {
-			AffineTransform mirror = new AffineTransform(-1, 0, 0, 1,
-					p.getBounds().width, 0);
+			AffineTransform mirror = new AffineTransform(-1, 0, 0, 1, p.getBounds().width, 0);
 			p.transform(mirror);
 		}
 		return p;
@@ -366,8 +352,7 @@ public class Viewer extends JFrame {
 	private GeneralPath startOfComicBookPath() {
 		GeneralPath p = endOfComicBookPath();
 
-		AffineTransform mirror = new AffineTransform(-1, 0, 0, 1,
-				p.getBounds().width, 0);
+		AffineTransform mirror = new AffineTransform(-1, 0, 0, 1, p.getBounds().width, 0);
 		p.transform(mirror);
 
 		return p;
@@ -382,8 +367,7 @@ public class Viewer extends JFrame {
 			// Pad with spaces:
 			byte[] b = new byte[of.length()];
 			Arrays.fill(b, 0, b.length, (byte) ' ');
-			System
-					.arraycopy(pg.getBytes(), 0, b, b.length - pg.length(), pg.length());
+			System.arraycopy(pg.getBytes(), 0, b, b.length - pg.length(), pg.length());
 			pg = new String(b);
 		}
 		// TODO: move this to a resources file.
@@ -416,8 +400,7 @@ public class Viewer extends JFrame {
 						long original_t0 = System.currentTimeMillis();
 						g.drawImage(screenImage, pPaint.x, pPaint.y, this);
 						long original_t1 = System.currentTimeMillis();
-						log.fine("time to draw original: " + (original_t1 - original_t0)
-								+ " ms");
+						log.fine("time to draw original: " + (original_t1 - original_t0) + " ms");
 						/*
 						 * Shape and page info preparations.
 						 */
@@ -446,79 +429,56 @@ public class Viewer extends JFrame {
 									break;
 								}
 							}
-							g2.drawImage(screenImage, pPaint.x, pPaint.y, imageWidth,
-									imageHeight, this);
+							g2.drawImage(screenImage, pPaint.x, pPaint.y, imageWidth, imageHeight, this);
 							long upscaling_t1 = System.currentTimeMillis();
-							log.fine("time to draw upscaled: "
-									+ (upscaling_t1 - upscaling_t0) + " ms");
+							log.fine("time to draw upscaled: " + (upscaling_t1 - upscaling_t0) + " ms");
 						}
-						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-								RenderingHints.VALUE_ANTIALIAS_ON);
+						g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 						/*
 						 * OnScreenDisplay: page count and zoom factor.
 						 */
 						if (preferences.getOnScreenDisplay() == Preferences.ON_SCREEN_DISPLAY_ON) {
 							FontRenderContext frc = g2.getFontRenderContext();
 
-							TextLayout tlPageCount = new TextLayout(pageCountText(), font,
-									frc);
-							double pageCountBoxWidth = tlPageCount.getBounds().getWidth()
-									+ strokeWidth * 0.8D;
-							double pageCountBoxHeight = tlPageCount.getBounds().getHeight()
-									+ strokeWidth * 0.8D;
+							TextLayout tlPageCount = new TextLayout(pageCountText(), font, frc);
+							double pageCountBoxWidth = tlPageCount.getBounds().getWidth() + strokeWidth * 0.8D;
+							double pageCountBoxHeight = tlPageCount.getBounds().getHeight() + strokeWidth * 0.8D;
 							double pageCountBoxArc = strokeWidth;
-							double pageCountBoxX = displayWidth - pageCountBoxWidth
-									- strokeWidth;// strokeWidth;
-							double pageCountBoxY = displayHeight - pageCountBoxHeight
-									- strokeWidth; // strokeWidth;
+							double pageCountBoxX = displayWidth - pageCountBoxWidth - strokeWidth;// strokeWidth;
+							double pageCountBoxY = displayHeight - pageCountBoxHeight - strokeWidth; // strokeWidth;
 							double pageCountX = pageCountBoxX + pageCountBoxWidth / 2
-									- tlPageCount.getBounds().getWidth() / 2
-									- tlPageCount.getBounds().getX();
+									- tlPageCount.getBounds().getWidth() / 2 - tlPageCount.getBounds().getX();
 							double pageCountY = pageCountBoxY + pageCountBoxHeight / 2
-									- tlPageCount.getBounds().getHeight() / 2
-									- tlPageCount.getBounds().getY();
-							Shape boxPageCount = new RoundRectangle2D.Double(pageCountBoxX,
-									pageCountBoxY, pageCountBoxWidth, pageCountBoxHeight,
-									pageCountBoxArc, pageCountBoxArc);
+									- tlPageCount.getBounds().getHeight() / 2 - tlPageCount.getBounds().getY();
+							Shape boxPageCount = new RoundRectangle2D.Double(pageCountBoxX, pageCountBoxY,
+									pageCountBoxWidth, pageCountBoxHeight, pageCountBoxArc, pageCountBoxArc);
 
 							TextLayout tlZoomFactor = new TextLayout(zoomFactor, font, frc);
-							double zoomFactorBoxWidth = tlZoomFactor.getBounds().getWidth()
-									+ strokeWidth * 0.8D;
-							double zoomFactorBoxHeight = tlZoomFactor.getBounds().getHeight()
-									+ strokeWidth * 0.8D;
+							double zoomFactorBoxWidth = tlZoomFactor.getBounds().getWidth() + strokeWidth * 0.8D;
+							double zoomFactorBoxHeight = tlZoomFactor.getBounds().getHeight() + strokeWidth
+									* 0.8D;
 							double zoomFactorBoxArc = strokeWidth;
-							double zoomFactorBoxX = displayWidth - zoomFactorBoxWidth
-									- strokeWidth;
+							double zoomFactorBoxX = displayWidth - zoomFactorBoxWidth - strokeWidth;
 							double zoomFactorBoxY = strokeWidth;
 							double zoomFactorX = zoomFactorBoxX + zoomFactorBoxWidth / 2
-									- tlZoomFactor.getBounds().getWidth() / 2
-									- tlZoomFactor.getBounds().getX();
+									- tlZoomFactor.getBounds().getWidth() / 2 - tlZoomFactor.getBounds().getX();
 							double zoomFactorY = zoomFactorBoxY + zoomFactorBoxHeight / 2
-									- tlZoomFactor.getBounds().getHeight() / 2
-									- tlZoomFactor.getBounds().getY();
-							Shape boxZoomFactor = new RoundRectangle2D.Double(zoomFactorBoxX,
-									zoomFactorBoxY, zoomFactorBoxWidth, zoomFactorBoxHeight,
-									zoomFactorBoxArc, zoomFactorBoxArc);
+									- tlZoomFactor.getBounds().getHeight() / 2 - tlZoomFactor.getBounds().getY();
+							Shape boxZoomFactor = new RoundRectangle2D.Double(zoomFactorBoxX, zoomFactorBoxY,
+									zoomFactorBoxWidth, zoomFactorBoxHeight, zoomFactorBoxArc, zoomFactorBoxArc);
 
-							TextLayout tlFilename = new TextLayout(getCurrentImageName(),
-									font, frc);
-							double filenameBoxWidth = tlFilename.getBounds().getWidth()
-									+ strokeWidth * 0.8D;
-							double filenameBoxHeight = tlFilename.getBounds().getHeight()
-									+ strokeWidth * 0.8D;
+							TextLayout tlFilename = new TextLayout(getCurrentImageName(), font, frc);
+							double filenameBoxWidth = tlFilename.getBounds().getWidth() + strokeWidth * 0.8D;
+							double filenameBoxHeight = tlFilename.getBounds().getHeight() + strokeWidth * 0.8D;
 							double filenameBoxArc = strokeWidth;
 							double filenameBoxX = strokeWidth;
-							double filenameBoxY = displayHeight - pageCountBoxHeight
-									- strokeWidth; // strokeWidth;
+							double filenameBoxY = displayHeight - pageCountBoxHeight - strokeWidth; // strokeWidth;
 							double filenameX = filenameBoxX + filenameBoxWidth / 2
-									- tlFilename.getBounds().getWidth() / 2
-									- tlFilename.getBounds().getX();
+									- tlFilename.getBounds().getWidth() / 2 - tlFilename.getBounds().getX();
 							double filenameY = filenameBoxY + filenameBoxHeight / 2
-									- tlFilename.getBounds().getHeight() / 2
-									- tlFilename.getBounds().getY();
-							Shape boxFilename = new RoundRectangle2D.Double(filenameBoxX,
-									filenameBoxY, filenameBoxWidth, filenameBoxHeight,
-									filenameBoxArc, filenameBoxArc);
+									- tlFilename.getBounds().getHeight() / 2 - tlFilename.getBounds().getY();
+							Shape boxFilename = new RoundRectangle2D.Double(filenameBoxX, filenameBoxY,
+									filenameBoxWidth, filenameBoxHeight, filenameBoxArc, filenameBoxArc);
 
 							g2.setComposite(compositeTransparent);
 							g2.setPaint(blackPaint);
@@ -538,10 +498,9 @@ public class Viewer extends JFrame {
 							int maxDimension = shape.getBounds().height > shape.getBounds().width ? shape
 									.getBounds().height : shape.getBounds().width;
 							int boundingBoxSize = maxDimension + strokeWidth * 6;
-							Shape boundingBox = new RoundRectangle2D.Float(
-									(displayWidth - boundingBoxSize) / 2,
-									(displayHeight - boundingBoxSize) / 2, boundingBoxSize,
-									boundingBoxSize, arcLength, arcLength);
+							Shape boundingBox = new RoundRectangle2D.Float((displayWidth - boundingBoxSize) / 2,
+									(displayHeight - boundingBoxSize) / 2, boundingBoxSize, boundingBoxSize,
+									arcLength, arcLength);
 							/*
 							 * Set a transparent composite, then draw/fill the background box.
 							 */
@@ -772,8 +731,7 @@ public class Viewer extends JFrame {
 			public void mouseWheelMoved(MouseWheelEvent e) {
 				switch (e.getScrollType()) {
 					case MouseWheelEvent.WHEEL_BLOCK_SCROLL: {
-						log.severe("Unhandled scroll type: WHEEL_BLOCK_SCROLL; event="
-								+ e.toString());
+						log.severe("Unhandled scroll type: WHEEL_BLOCK_SCROLL; event=" + e.toString());
 						break;
 					}
 					case MouseWheelEvent.WHEEL_UNIT_SCROLL: {
@@ -785,8 +743,7 @@ public class Viewer extends JFrame {
 								mouseLastCheckScrollX = System.currentTimeMillis();
 								repaint();
 							} else {
-								horizontalScrollAmount += e.getScrollAmount()
-										* e.getWheelRotation();
+								horizontalScrollAmount += e.getScrollAmount() * e.getWheelRotation();
 							}
 						} else {
 							if (System.currentTimeMillis() - mouseLastCheckScrollY >= scrollPollingTime) {
@@ -795,8 +752,7 @@ public class Viewer extends JFrame {
 								mouseLastCheckScrollY = System.currentTimeMillis();
 								repaint();
 							} else {
-								verticalScrollAmount += e.getScrollAmount()
-										* e.getWheelRotation();
+								verticalScrollAmount += e.getScrollAmount() * e.getWheelRotation();
 							}
 						}
 						break;
@@ -1028,8 +984,7 @@ public class Viewer extends JFrame {
 						break;
 					}
 					case KeyEvent.VK_Z: {
-						preferences
-								.setScrollPriority(Preferences.SCROLL_PRIORITY_HORIZONTAL);
+						preferences.setScrollPriority(Preferences.SCROLL_PRIORITY_HORIZONTAL);
 						break;
 					}
 					case KeyEvent.VK_D: {
@@ -1043,10 +998,9 @@ public class Viewer extends JFrame {
 						break;
 					}
 					case KeyEvent.VK_F: {
-						GraphicsDevice gd = GraphicsEnvironment
-								.getLocalGraphicsEnvironment().getDefaultScreenDevice();
-						if (gd.getFullScreenWindow() != null
-								&& gd.getFullScreenWindow().equals(myself)) {
+						GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment()
+								.getDefaultScreenDevice();
+						if (gd.getFullScreenWindow() != null && gd.getFullScreenWindow().equals(myself)) {
 							gd.setFullScreenWindow(null);
 						} else {
 							gd.setFullScreenWindow(myself);
@@ -1062,9 +1016,8 @@ public class Viewer extends JFrame {
 						break;
 					}
 					case KeyEvent.VK_P: {
-						String s = (String) JOptionPane.showInputDialog(myself,
-								"Go to page...", "Customized Dialog",
-								JOptionPane.PLAIN_MESSAGE, null, null,
+						String s = (String) JOptionPane.showInputDialog(myself, "Go to page...",
+								"Customized Dialog", JOptionPane.PLAIN_MESSAGE, null, null,
 								comicBook.getCurrentPageNumber() + "");
 						try {
 							int goToPage = Integer.parseInt(s);
@@ -1108,8 +1061,7 @@ public class Viewer extends JFrame {
 				return "2.0".equals(Toolkit.getDefaultToolkit().getDesktopProperty(
 						"apple.awt.contentScaleFactor"));
 			} else if (vendor.indexOf("Oracle") != -1) {
-				GraphicsEnvironment env = GraphicsEnvironment
-						.getLocalGraphicsEnvironment();
+				GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 				final GraphicsDevice device = env.getDefaultScreenDevice();
 				try {
 					Field field = device.getClass().getDeclaredField("scale");

@@ -28,7 +28,13 @@ public class Preferences {
 	 */
 	public final static int SCALE_ORIGINAL = 4;
 
+	/**
+	 * Scale the image to a specified % of the original (varying using +/- keys).
+	 */
+	public final static int SCALE_FIXED = 5;
+
 	private int scaleFactor = SCALE_ORIGINAL;
+	private float zoomFactor = 1.0f;
 
 	/**
 	 * Corresponds to SCALE_SMOOTH
@@ -123,10 +129,16 @@ public class Preferences {
 
 	public void save() {
 		try {
-			File file = new File(System.getProperty("user.home", "${user.home}") + "/.jMangaViewer.properties");
+			File file = new File(System.getProperty("user.home", "${user.home}")
+					+ "/.jMangaViewer.properties");
 			log.info("saving preferences into file " + file);
 			Properties p = new Properties();
 			p.setProperty("scaleFactor", Integer.toString(getScaleFactor()));
+			if (getScaleFactor() == SCALE_FIXED) {
+				p.setProperty("zoomFactor", Float.toString(getZoomFactor()));
+			} else {
+				p.remove("zoomFactor");
+			}
 			p.setProperty("scaleQuality", Integer.toString(getScaleQuality()));
 			p.setProperty("scrollPriority", Integer.toString(getScrollPriority()));
 			p.setProperty("readingStyle", Integer.toString(getReadingStyle()));
@@ -140,6 +152,10 @@ public class Preferences {
 	}
 
 	/* */
+	public float getZoomFactor() {
+		return zoomFactor;
+	}
+
 	public int getScaleFactor() {
 		return scaleFactor;
 	}
@@ -150,13 +166,13 @@ public class Preferences {
 			case SCALE_WIDTH:
 			case SCALE_ORIGINAL:
 			case SCALE_WINDOW:
+			case SCALE_FIXED:
 				this.scaleFactor = scaleFactor;
 				break;
 			default: {
 				throw new IllegalArgumentException("unmapped value for scale factor: " + scaleFactor);
 			}
 		}
-
 	}
 
 	public int getScrollPriority() {
@@ -222,7 +238,8 @@ public class Preferences {
 				break;
 			}
 			default: {
-				throw new IllegalArgumentException("Unmapped value for on screen display: " + onScreenDisplay);
+				throw new IllegalArgumentException("Unmapped value for on screen display: "
+						+ onScreenDisplay);
 			}
 		}
 	}
