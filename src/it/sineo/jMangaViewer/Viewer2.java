@@ -39,6 +39,7 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.logging.ConsoleHandler;
@@ -111,7 +112,8 @@ public class Viewer2 extends JPanel {
 	private final int strokeWidth = 16;
 	private final int arcLength = 80;
 	private Thread overlayThread;
-	private String zoomFactor;
+	private float zoomFactor;
+	private String sZoomFactor;
 	private NumberFormat percFormat = NumberFormat.getPercentInstance();
 	private GeneralPath shape = null;
 
@@ -351,6 +353,15 @@ public class Viewer2 extends JPanel {
 				preferences.setScaleFactor(Preferences.SCALE_ORIGINAL);
 			} else if (SCALE_WINDOW.equals(key)) {
 				preferences.setScaleFactor(Preferences.SCALE_WINDOW);
+			} else if (SCALE_DECREASE.equals(key) || SCALE_INCREASE.equals(key)) {
+				preferences.setScaleFactor(Preferences.SCALE_FIXED);
+				log.fine("current zoomFactor: " + zoomFactor);
+				float _c = 0.9f;
+				if (SCALE_INCREASE.equals(key)) {
+					_c = 1.1f;
+				}
+				preferences.setZoomFactor(zoomFactor * _c);
+				log.fine("new zoomFactor: " + preferences.getZoomFactor());
 			}
 			load(comicBook.getCurrentPageURL());
 			updatePaintPosition(-1, -1);
@@ -452,6 +463,8 @@ public class Viewer2 extends JPanel {
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_H, 0), SCALE_HEIGHT);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_O, 0), SCALE_ORIGINAL);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_B, 0), SCALE_WINDOW);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0), SCALE_INCREASE);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, 0), SCALE_DECREASE);
 
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_1, 0), QUALITY_FAST);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_2, 0), QUALITY_MEDIUM);
@@ -482,6 +495,8 @@ public class Viewer2 extends JPanel {
 		getActionMap().put(SCALE_HEIGHT, new ScaleFactorAction(SCALE_HEIGHT));
 		getActionMap().put(SCALE_ORIGINAL, new ScaleFactorAction(SCALE_ORIGINAL));
 		getActionMap().put(SCALE_WINDOW, new ScaleFactorAction(SCALE_WINDOW));
+		getActionMap().put(SCALE_DECREASE, new ScaleFactorAction(SCALE_DECREASE));
+		getActionMap().put(SCALE_INCREASE, new ScaleFactorAction(SCALE_INCREASE));
 
 		getActionMap().put(QUALITY_FAST, new ScaleQualityAction(QUALITY_FAST));
 		getActionMap().put(QUALITY_MEDIUM, new ScaleQualityAction(QUALITY_MEDIUM));
@@ -674,6 +689,13 @@ public class Viewer2 extends JPanel {
 				}
 				break;
 			}
+			case Preferences.SCALE_FIXED: {
+				float _f = preferences.getZoomFactor();
+				log.fine("scaling to fixed factor of " + percFormat.format(_f));
+				screenImage = getScaledInstance(original, (int) (_imageWidth * _f),
+						(int) (_imageHeight * _f), hint, false);
+				break;
+			}
 			case Preferences.SCALE_ORIGINAL: {
 				log.fine("not scaling due to original size request");
 				// No action.
@@ -688,7 +710,8 @@ public class Viewer2 extends JPanel {
 
 		int originalWidth = original.getWidth(this);
 		log.fine("original width: " + originalWidth);
-		zoomFactor = percFormat.format((double) imageWidth / (double) originalWidth);
+		zoomFactor = (float) imageWidth / (float) originalWidth;
+		sZoomFactor = percFormat.format(zoomFactor);
 
 		if (imageWidth <= displayWidth) {
 			ignoreX = true;
@@ -918,7 +941,7 @@ public class Viewer2 extends JPanel {
 					Shape boxPageCount = new RoundRectangle2D.Double(pageCountBoxX, pageCountBoxY,
 							pageCountBoxWidth, pageCountBoxHeight, pageCountBoxArc, pageCountBoxArc);
 
-					TextLayout tlZoomFactor = new TextLayout(zoomFactor, font, frc);
+					TextLayout tlZoomFactor = new TextLayout(sZoomFactor, font, frc);
 					double zoomFactorBoxWidth = tlZoomFactor.getBounds().getWidth() + strokeWidth * 0.8D;
 					double zoomFactorBoxHeight = tlZoomFactor.getBounds().getHeight() + strokeWidth * 0.8D;
 					double zoomFactorBoxArc = strokeWidth;

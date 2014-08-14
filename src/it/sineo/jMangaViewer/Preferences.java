@@ -108,6 +108,7 @@ public class Preferences {
 					+ "/.jMangaViewer.properties");
 			p.load(fis);
 			setScaleFactor(read(p, "scaleFactor", SCALE_ORIGINAL));
+			setZoomFactor(read(p, "zoomFactor", 1.0f));
 			setScaleQuality(read(p, "scaleQuality", QUALITY_HIGH));
 			setScrollPriority(read(p, "scrollpriority", SCROLL_PRIORITY_VERTICAL));
 			setReadingStyle(read(p, "readingStyle", READING_LEFT_TO_RIGHT));
@@ -122,6 +123,14 @@ public class Preferences {
 	private Integer read(Properties p, String property, int defaultValue) {
 		try {
 			return new Integer(p.getProperty(property));
+		} catch (Exception ex) {
+			return defaultValue;
+		}
+	}
+
+	private Float read(Properties p, String property, float defaultValue) {
+		try {
+			return new Float(p.getProperty(property));
 		} catch (Exception ex) {
 			return defaultValue;
 		}
@@ -154,6 +163,10 @@ public class Preferences {
 	/* */
 	public float getZoomFactor() {
 		return zoomFactor;
+	}
+
+	public void setZoomFactor(float zoomFactor) {
+		this.zoomFactor = zoomFactor;
 	}
 
 	public int getScaleFactor() {
