@@ -39,7 +39,6 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.logging.ConsoleHandler;
@@ -657,16 +656,12 @@ public class Viewer2 extends JPanel {
 		switch (preferences.getScaleFactor()) {
 			case Preferences.SCALE_HEIGHT: {
 				log.fine("scaling to fit height of " + displayHeight);
-				// screenImage = original.getScaledInstance(-1, displayHeight,
-				// preferences.getScaleQuality());
 				screenImage = getScaledInstance(original, (displayHeight * _imageWidth / _imageHeight),
 						displayHeight, hint, false);
 				break;
 			}
 			case Preferences.SCALE_WIDTH: {
 				log.fine("scaling to fit width of " + displayWidth);
-				// screenImage = original.getScaledInstance(displayWidth, -1,
-				// preferences.getScaleQuality());
 				screenImage = getScaledInstance(original, displayWidth,
 						(displayWidth * _imageHeight / _imageWidth), hint, false);
 				break;
@@ -676,14 +671,10 @@ public class Viewer2 extends JPanel {
 				log.fine("image loaded: " + imageWidth + "x" + imageHeight);
 				if (_imageWidth > _imageHeight) {
 					log.fine("scaling to width");
-					// screenImage = original.getScaledInstance(displayWidth, -1,
-					// preferences.getScaleQuality());
 					screenImage = getScaledInstance(original, displayWidth,
 							(displayWidth * _imageHeight / _imageWidth), hint, false);
 				} else {
 					log.fine("scaling to height");
-					// screenImage = original.getScaledInstance(-1, displayHeight,
-					// preferences.getScaleQuality());
 					screenImage = getScaledInstance(original, (displayHeight * _imageWidth / _imageHeight),
 							displayHeight, hint, false);
 				}
