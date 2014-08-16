@@ -865,12 +865,13 @@ public class Viewer2 extends JPanel {
 
 	protected void render(Graphics g) {
 		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+		boolean ICantFixTheRedrawBug = true;
 		if (screenImage != null) {
 			// if (pPaint != null) {
 			if (dirty) {
 				log.fine("dirty flag is set, we'll repaint no matter what");
 			}
-			if (!(pPaint.equals(pLastPaint)) || dirty == true) {
+			if (!(pPaint.equals(pLastPaint)) || dirty == true || ICantFixTheRedrawBug) {
 				dirty = false;
 				g.fillRect(0, 0, displayWidth, displayHeight);
 				long original_t0 = System.currentTimeMillis();
