@@ -13,8 +13,8 @@
 #                                                                                #
 # @author    Tobias Fischer                                                      #
 # @url       https://github.com/tofi86/universalJavaApplicationStub              #
-# @date      2014-07-12                                                          #
-# @version   0.6                                                                 #
+# @date      2014-10-12                                                          #
+# @version   0.7.0                                                               #
 #                                                                                #
 #                                                                                #
 ##################################################################################
@@ -73,9 +73,13 @@ PROGDIR=`dirname "$PRG"`
 # set files and folders
 ############################################
 
-# the base path of the app package
+# the absolute path of the app package
 cd "$PROGDIR"/../../
 AppPackageFolder=`pwd`
+
+# the base path of the app package
+cd ..
+AppPackageRoot=`pwd`
 
 # set Apple's Java folder
 AppleJavaFolder="${AppPackageFolder}"/Contents/Resources/Java
@@ -107,8 +111,12 @@ CFBundleName=`/usr/libexec/PlistBuddy -c "print :CFBundleName" "${InfoPlistFile}
 CFBundleIconFile=`/usr/libexec/PlistBuddy -c "print :CFBundleIconFile" "${InfoPlistFile}"`
 
 
-# read Info.plist in Apple style
-if [ -d "${AppleJavaFolder}" ]; then
+# check Info.plist for Apple style Java keys -> if key :Java is present, parse in apple mode
+/usr/libexec/PlistBuddy -c "print :Java" "${InfoPlistFile}" > /dev/null 2>&1
+exitcode=$?
+
+# read Info.plist in Apple style if exit code returns 0 (true, :Java key is present)
+if [ $exitcode -eq 0 ]; then
 
 	# read the Java WorkingDirectory
 	JVMWorkDir=`/usr/libexec/PlistBuddy -c "print :Java:WorkingDirectory" "${InfoPlistFile}" 2> /dev/null | xargs`
@@ -127,19 +135,40 @@ if [ -d "${AppleJavaFolder}" ]; then
 		WorkingDirectory="${JVMWorkDir}"
 		
 	else
-		# root is the standard WorkingDirectory when the script is started
-		WorkingDirectory="/"
+		# AppPackageRoot is the standard WorkingDirectory when the script is started
+		WorkingDirectory="${AppPackageRoot}"
 	fi
 	
 	# set Java and Resources folder
 	JavaFolder="${AppleJavaFolder}"
 	ResourcesFolder="${AppleResourcesFolder}"
 
+	APP_PACKAGE="${AppPackageFolder}"
+	JAVAROOT="${AppleJavaFolder}"
+	USER_HOME="`eval echo ~`"
+
 	# read the MainClass name
 	JVMMainClass=`/usr/libexec/PlistBuddy -c "print :Java:MainClass" "${InfoPlistFile}" 2> /dev/null`
 
 	# read the JVM Options
 	JVMOptions=`/usr/libexec/PlistBuddy -c "print :Java:Properties" "${InfoPlistFile}" 2> /dev/null | grep " =" | sed 's/^ */-D/g' | tr '\n' ' ' | sed 's/  */ /g' | sed 's/ = /=/g' | xargs`
+
+	# read StartOnMainThread
+	JVMStartOnMainThread=`/usr/libexec/PlistBuddy -c "print :Java:StartOnMainThread" "${InfoPlistFile}" 2> /dev/null`
+	if [ "${JVMStartOnMainThread}" == "true" ]; then
+		echo ${JVMStartOnMainThread} > ~/Desktop/test.txt
+		JVMOptions+=" -XstartOnFirstThread"
+	fi
+
+	# read the ClassPath in either Array or String style
+	JVMClassPath_RAW=`/usr/libexec/PlistBuddy -c "print :Java:ClassPath" "${InfoPlistFile}" 2> /dev/null`
+	if [[ $JVMClassPath_RAW == *Array* ]] ; then
+		JVMClassPath=.`/usr/libexec/PlistBuddy -c "print :Java:ClassPath" "${InfoPlistFile}" 2> /dev/null | grep "    " | sed 's/^ */:/g' | tr -d '\n' | xargs`
+	else
+		JVMClassPath=${JVMClassPath_RAW}
+	fi
+	# expand variables $APP_PACKAGE, $JAVAROOT, $USER_HOME
+	JVMClassPath=`eval "echo ${JVMClassPath}"`
 
 	# read the JVM Default Options
 	JVMDefaultOptions=`/usr/libexec/PlistBuddy -c "print :Java:VMOptions" "${InfoPlistFile}" 2> /dev/null | xargs`
@@ -149,25 +178,32 @@ if [ -d "${AppleJavaFolder}" ]; then
 
 
 # read Info.plist in Oracle style
-elif [ -d "${OracleJavaFolder}" ]; then
+else
 
 	# set Working Directory and Java and Resources folder
 	JavaFolder="${OracleJavaFolder}"
 	ResourcesFolder="${OracleResourcesFolder}"
 	WorkingDirectory="${OracleJavaFolder}"
 
+	APP_ROOT="${AppPackageFolder}"
+
 	# read the MainClass name
 	JVMMainClass=`/usr/libexec/PlistBuddy -c "print :JVMMainClassName" "${InfoPlistFile}" 2> /dev/null`
 
 	# read the JVM Options
-	JVMOptions=`/usr/libexec/PlistBuddy -c "print :JVMOptions" "${InfoPlistFile}" 2> /dev/null | grep " -" | tr '\n' ' ' | sed 's/  */ /g' | xargs`
+	JVMOptions=`/usr/libexec/PlistBuddy -c "print :JVMOptions" "${InfoPlistFile}" 2> /dev/null | grep " -" | tr -d '\n' | sed 's/  */ /g' | xargs`
+	# replace occurances of $APP_ROOT with it's content
+	JVMOptions=`eval "echo ${JVMOptions}"`
+
+	JVMClassPath="${JavaFolder}/*"
 
 	# read the JVM Default Options
-	JVMDefaultOptions=`/usr/libexec/PlistBuddy -c "print :JVMDefaultOptions" "${InfoPlistFile}" 2> /dev/null | grep -o "\-.*" | tr '\n' ' ' | xargs`
+	JVMDefaultOptions=`/usr/libexec/PlistBuddy -c "print :JVMDefaultOptions" "${InfoPlistFile}" 2> /dev/null | grep -o "\-.*" | tr -d '\n' | xargs`
 
 	# read the JVM Arguments
-	JVMArguments=`/usr/libexec/PlistBuddy -c "print :JVMArguments" "${InfoPlistFile}" 2> /dev/null | tr '\n' ' ' | sed -E 's/Array \{ *(.*) *\}/\1/g' | sed 's/  */ /g' | xargs`
-
+	JVMArguments=`/usr/libexec/PlistBuddy -c "print :JVMArguments" "${InfoPlistFile}" 2> /dev/null | tr -d '\n' | sed -E 's/Array \{ *(.*) *\}/\1/g' | sed 's/  */ /g' | xargs`
+	# replace occurances of $APP_ROOT with it's content
+	JVMArguments=`eval "echo ${JVMArguments}"`
 fi
 
 
@@ -178,15 +214,15 @@ fi
 #################################
 
 # first check system variable "$JAVA_HOME"
-if [ -n "$JAVA_HOME" ]; then
+if [ -n "$JAVA_HOME" ] ; then
 	JAVACMD="$JAVA_HOME/bin/java"
 
 # otherwise check "/usr/libexec/java_home" symlinks
-elif [ -x /usr/libexec/java_home ]; then
-	JAVACMD="`/usr/libexec/java_home`/bin/java"
+elif [ -x /usr/libexec/java_home ] && [ -d "`/usr/libexec/java_home 2> /dev/null`" ] ; then
+	JAVACMD="`/usr/libexec/java_home 2> /dev/null`/bin/java"
 
 # otherwise check Java standard symlink (old Apple Java)
-elif test -h /Library/Java/Home; then
+elif [ -h /Library/Java/Home ]; then
 	JAVACMD="/Library/Java/Home/bin/java"
 
 # fallback: public JRE plugin (Oracle Java)
@@ -205,15 +241,15 @@ fi
 ####################################################
 
 # display error message if MainClassName is empty
-if [ ${JVMMainClass} == "" ]; then
+if [ -z ${JVMMainClass} ]; then
 	# display error message with applescript
-	osascript -e "tell application \"System Events\" to display dialog \"ERROR launching ${CFBundleName}!\n\nNo MainClassName specified!\nJava application cannot be started!\" with title \"${CFBundleName}\" buttons {\" OK \"} default button 1 with icon path to resource \"${CFBundleIconFile}\" in bundle (path to me)"
+	osascript -e "tell application \"System Events\" to display dialog \"ERROR launching '${CFBundleName}'!\n\n'MainClass' isn't specified!\nJava application cannot be started!\" with title \"${CFBundleName}\" buttons {\" OK \"} default button 1 with icon path to resource \"${CFBundleIconFile}\" in bundle (path to me)"
 	# exit with error
 	exit 1
 
 
-# check whether $JAVACMD is executable
-elif [ -x "$JAVACMD" ]; then
+# check whether $JAVACMD is a file and executable
+elif [ -f "$JAVACMD" ] && [ -x "$JAVACMD" ] ; then
 
 	# enable drag&drop to the dock icon
 	export CFProcessPath="$0"
@@ -230,7 +266,7 @@ elif [ -x "$JAVACMD" ]; then
 	#	- main class
 	#	- JVM arguments
 	exec "$JAVACMD" \
-			-cp "${JavaFolder}/*" \
+			-cp "${JVMClassPath}" \
 			-Xdock:icon="${ResourcesFolder}/${CFBundleIconFile}" \
 			-Xdock:name="${CFBundleName}" \
 			${JVMOptions:+$JVMOptions }\
@@ -242,7 +278,7 @@ elif [ -x "$JAVACMD" ]; then
 else
 
 	# display error message with applescript
-	osascript -e "tell application \"System Events\" to display dialog \"ERROR launching ${CFBundleName}!\n\nYou need to have JAVA installed on your Mac!\nVisit http://java.com for more information...\" with title \"${CFBundleName}\" buttons {\" OK \"} default button 1 with icon path to resource \"${CFBundleIconFile}\" in bundle (path to me)"
+	osascript -e "tell application \"System Events\" to display dialog \"ERROR launching '${CFBundleName}'!\n\nYou need to have JAVA installed on your Mac!\nVisit http://java.com for more information...\" with title \"${CFBundleName}\" buttons {\" OK \"} default button 1 with icon path to resource \"${CFBundleIconFile}\" in bundle (path to me)"
 
 	# and open java.com
 	open http://java.com
@@ -250,4 +286,3 @@ else
 	# exit with error
 	exit 1
 fi
-
