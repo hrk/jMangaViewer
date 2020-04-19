@@ -14,6 +14,7 @@ public class ImageFileFilter implements FileFilter, FilenameFilter {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see java.io.FileFilter#accept(java.io.File)
 	 */
 	public boolean accept(final File file) {
@@ -22,6 +23,7 @@ public class ImageFileFilter implements FileFilter, FilenameFilter {
 
 	/*
 	 * (non-Javadoc)
+	 * 
 	 * @see java.io.FilenameFilter#accept(java.io.File, java.lang.String)
 	 */
 	public boolean accept(final File dir, final String name) {
@@ -30,6 +32,12 @@ public class ImageFileFilter implements FileFilter, FilenameFilter {
 
 	public static boolean fileIsSupportedImage(final String filename) {
 		String n = filename.toLowerCase();
+		if (filename.startsWith("._")) {
+			/*
+			 * Skip OSX metadata files.
+			 */
+			return false;
+		}
 		return (n.endsWith(".png") || n.endsWith(".jpg") || n.endsWith(".jpeg") || n.endsWith(".gif"));
 	}
 
