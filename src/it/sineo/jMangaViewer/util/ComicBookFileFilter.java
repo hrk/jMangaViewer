@@ -48,7 +48,7 @@ public class ComicBookFileFilter extends javax.swing.filechooser.FileFilter impl
 
 	@Override
 	public String getDescription() {
-		return "Comic Book files (*.zip, *.cbz)  and directories";
+		return "Comic Book files (*.zip, *.cbz) and directories";
 	}
 
 	public static boolean fileIsComicBookArchive(File file) {
