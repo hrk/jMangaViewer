@@ -763,9 +763,9 @@ public class Viewer2 extends JPanel {
 			 */
 			int y = pLastPaint.y;
 			if (!ignoreY) {
-				if (deltaY < 0 && (y + deltaY + imageHeight < displayHeight)) {
+				if (deltaY < 0 && (y + deltaY + (.3*deltaY) + imageHeight < displayHeight)) {
 					y = displayHeight - imageHeight;
-				} else if (deltaY > 0 && (y + deltaY > 0)) {
+				} else if (deltaY > 0 && (y + deltaY + (.3*deltaY)> 0)) {
 					y = 0;
 				} else {
 					y += deltaY;
