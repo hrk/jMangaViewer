@@ -1102,7 +1102,7 @@ public class Viewer2 extends JPanel {
 			if (vendor.indexOf("Apple") != -1) {
 				return "2.0".equals(Toolkit.getDefaultToolkit().getDesktopProperty(
 						"apple.awt.contentScaleFactor"));
-			} else if (vendor.indexOf("Oracle") != -1) {
+			} else if (vendor.indexOf("Oracle") != -1 || vendor.indexOf("AdoptOpenJDK") != -1) {
 				GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 				final GraphicsDevice device = env.getDefaultScreenDevice();
 				try {
