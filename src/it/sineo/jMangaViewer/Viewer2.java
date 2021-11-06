@@ -588,7 +588,6 @@ public class Viewer2 extends JPanel {
 		GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		GraphicsDevice dev = env.getDefaultScreenDevice();
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		f.setBackground(Color.darkGray);
 		f.setResizable(false);
 		f.setUndecorated(true);
 		f.setIgnoreRepaint(true);
@@ -873,6 +872,7 @@ public class Viewer2 extends JPanel {
 			}
 			if (!(pPaint.equals(pLastPaint)) || dirty == true || ICantFixTheRedrawBug) {
 				dirty = false;
+				g.setColor(Color.BLACK);
 				g.fillRect(0, 0, displayWidth, displayHeight);
 				long original_t0 = System.currentTimeMillis();
 				boolean complete = g.drawImage(screenImage, pPaint.x, pPaint.y, /* this */
