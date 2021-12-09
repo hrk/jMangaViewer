@@ -29,7 +29,11 @@ public class Preferences {
 	public final static int SCALE_ORIGINAL = 4;
 
 	/**
-	 * Scale the image to a specified % of the original (varying using +/- keys).
+	 * Scale the image to a (calculated) % of the original (varying using +/-
+	 * keys) in order to keep the same screen proportions/size even if the images
+	 * have a different size. Useful if you're reading a bunch of comics where
+	 * each one has a different size and you don't want to change the zoom factor
+	 * at every comic.
 	 */
 	public final static int SCALE_FIXED = 5;
 

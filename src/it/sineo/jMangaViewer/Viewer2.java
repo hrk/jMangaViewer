@@ -354,13 +354,14 @@ public class Viewer2 extends JPanel {
 				preferences.setScaleFactor(Preferences.SCALE_WINDOW);
 			} else if (SCALE_DECREASE.equals(key) || SCALE_INCREASE.equals(key)) {
 				preferences.setScaleFactor(Preferences.SCALE_FIXED);
-				log.fine("current zoomFactor: " + zoomFactor);
+				float _z = preferences.getZoomFactor();
+				log.fine("current zoomFactor: screen=" + _z + ", image=" + zoomFactor);
 				float _c = 0.9f;
 				if (SCALE_INCREASE.equals(key)) {
 					_c = 1.1f;
 				}
-				preferences.setZoomFactor(zoomFactor * _c);
-				log.fine("new zoomFactor: " + preferences.getZoomFactor());
+				preferences.setZoomFactor(_z * _c);
+				log.fine("new zoomFactor: screen=" + preferences.getZoomFactor());
 			}
 			load(comicBook.getCurrentPageURL());
 			updatePaintPosition(-1, -1);
@@ -682,8 +683,9 @@ public class Viewer2 extends JPanel {
 			case Preferences.SCALE_FIXED: {
 				float _f = preferences.getZoomFactor();
 				log.fine("scaling to fixed factor of " + percFormat.format(_f));
-				screenImage = getScaledInstance(original, (int) (_imageWidth * _f),
-						(int) (_imageHeight * _f), hint, false);
+				screenImage = getScaledInstance(original,
+						(int) (displayHeight * _f * _imageWidth / _imageHeight), (int) (displayHeight * _f),
+						hint, false);
 				break;
 			}
 			case Preferences.SCALE_ORIGINAL: {
