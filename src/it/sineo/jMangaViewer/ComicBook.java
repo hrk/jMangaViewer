@@ -59,7 +59,7 @@ public class ComicBook {
 	}
 
 	public Image getFirstPage() {
-		return images.get(0);
+		return images.get(getFirstPageURL());
 	}
 
 	public URL getNextPageURL() {
@@ -76,7 +76,7 @@ public class ComicBook {
 				iex.printStackTrace();
 			}
 		}
-		return images.get(++currentIdx);
+		return images.get(getNextPageURL());
 	}
 
 	public URL getPreviousPageURL() {
@@ -93,7 +93,7 @@ public class ComicBook {
 				iex.printStackTrace();
 			}
 		}
-		return images.get(--currentIdx);
+		return images.get(getPreviousPageURL());
 	}
 
 	public boolean hasNextPage() {
@@ -126,7 +126,7 @@ public class ComicBook {
 				iex.printStackTrace();
 			}
 		}
-		return images.get(currentIdx);
+		return images.get(getCurrentPageURL());
 	}
 
 	public Image getImage(URL url) {
