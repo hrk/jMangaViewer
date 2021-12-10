@@ -20,6 +20,7 @@ import java.awt.Shape;
 import java.awt.Toolkit;
 import java.awt.Transparency;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -82,6 +83,8 @@ public class Viewer2 extends JPanel {
 	private final static String SCALE_WINDOW = "scale_window";
 	private final static String SCALE_INCREASE = "scale_increase";
 	private final static String SCALE_DECREASE = "scale_decrease";
+	private final static String SCALE_INCREASE_LESS = "scale_increase_less";
+	private final static String SCALE_DECREASE_LESS = "scale_decrease_less";
 	/* Scale quality */
 	private final static String QUALITY_FAST = "scale_fast";
 	private final static String QUALITY_MEDIUM = "scale_medium";
@@ -352,12 +355,19 @@ public class Viewer2 extends JPanel {
 				preferences.setScaleFactor(Preferences.SCALE_ORIGINAL);
 			} else if (SCALE_WINDOW.equals(key)) {
 				preferences.setScaleFactor(Preferences.SCALE_WINDOW);
-			} else if (SCALE_DECREASE.equals(key) || SCALE_INCREASE.equals(key)) {
+			} else if (SCALE_DECREASE.equals(key) || SCALE_INCREASE.equals(key)
+					|| SCALE_DECREASE_LESS.equals(key) || SCALE_INCREASE_LESS.equals(key)) {
 				preferences.setScaleFactor(Preferences.SCALE_FIXED);
 				float _z = preferences.getZoomFactor();
 				log.fine("current zoomFactor: screen=" + _z + ", image=" + zoomFactor);
-				float _c = 0.9f;
-				if (SCALE_INCREASE.equals(key)) {
+				float _c = 1.0f;
+				if (SCALE_DECREASE.equals(key)) {
+					_c = 0.9f;
+				} else if (SCALE_DECREASE_LESS.equals(key)) {
+					_c = 0.95f;
+				} else if (SCALE_INCREASE_LESS.equals(key)) {
+					_c = 1.05f;
+				} else if (SCALE_INCREASE.equals(key)) {
 					_c = 1.1f;
 				}
 				preferences.setZoomFactor(_z * _c);
@@ -465,6 +475,10 @@ public class Viewer2 extends JPanel {
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_B, 0), SCALE_WINDOW);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, 0), SCALE_INCREASE);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, 0), SCALE_DECREASE);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_PLUS, InputEvent.SHIFT_DOWN_MASK),
+				SCALE_INCREASE_LESS);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_MINUS, InputEvent.SHIFT_DOWN_MASK),
+				SCALE_DECREASE_LESS);
 
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_1, 0), QUALITY_FAST);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_2, 0), QUALITY_MEDIUM);
@@ -497,6 +511,8 @@ public class Viewer2 extends JPanel {
 		getActionMap().put(SCALE_WINDOW, new ScaleFactorAction(SCALE_WINDOW));
 		getActionMap().put(SCALE_DECREASE, new ScaleFactorAction(SCALE_DECREASE));
 		getActionMap().put(SCALE_INCREASE, new ScaleFactorAction(SCALE_INCREASE));
+		getActionMap().put(SCALE_DECREASE_LESS, new ScaleFactorAction(SCALE_DECREASE_LESS));
+		getActionMap().put(SCALE_INCREASE_LESS, new ScaleFactorAction(SCALE_INCREASE_LESS));
 
 		getActionMap().put(QUALITY_FAST, new ScaleQualityAction(QUALITY_FAST));
 		getActionMap().put(QUALITY_MEDIUM, new ScaleQualityAction(QUALITY_MEDIUM));
@@ -684,8 +700,8 @@ public class Viewer2 extends JPanel {
 				float _f = preferences.getZoomFactor();
 				log.fine("scaling to fixed factor of " + percFormat.format(_f));
 				screenImage = getScaledInstance(original,
-						(int) (displayHeight * _f * _imageWidth / _imageHeight), (int) (displayHeight * _f),
-						hint, false);
+						(int) (displayHeight * _f * (float) _imageWidth / (float) _imageHeight),
+						(int) (displayHeight * _f), hint, false);
 				break;
 			}
 			case Preferences.SCALE_ORIGINAL: {
