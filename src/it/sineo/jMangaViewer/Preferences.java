@@ -126,7 +126,7 @@ public class Preferences {
 
 	private Integer read(Properties p, String property, int defaultValue) {
 		try {
-			return new Integer(p.getProperty(property));
+			return Integer.valueOf(p.getProperty(property));
 		} catch (Exception ex) {
 			return defaultValue;
 		}
@@ -134,7 +134,7 @@ public class Preferences {
 
 	private Float read(Properties p, String property, float defaultValue) {
 		try {
-			return new Float(p.getProperty(property));
+			return Float.valueOf(p.getProperty(property));
 		} catch (Exception ex) {
 			return defaultValue;
 		}
