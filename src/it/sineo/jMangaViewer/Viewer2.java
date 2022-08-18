@@ -655,6 +655,7 @@ public class Viewer2 extends JPanel {
 		int _imageHeight = original.getHeight();
 		log.fine("called Toolkit.#.getImage(), checking scale factor");
 		Object hint = null;
+		boolean higherQuality = false;
 		switch (preferences.getScaleQuality()) {
 			case Preferences.QUALITY_FAST: {
 				hint = RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
@@ -666,6 +667,7 @@ public class Viewer2 extends JPanel {
 			}
 			case Preferences.QUALITY_HIGH: {
 				hint = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
+				higherQuality = true;
 				break;
 			}
 		}
@@ -673,13 +675,13 @@ public class Viewer2 extends JPanel {
 			case Preferences.SCALE_HEIGHT: {
 				log.fine("scaling to fit height of " + displayHeight);
 				screenImage = getScaledInstance(original, (displayHeight * _imageWidth / _imageHeight),
-						displayHeight, hint, false);
+						displayHeight, hint, higherQuality);
 				break;
 			}
 			case Preferences.SCALE_WIDTH: {
 				log.fine("scaling to fit width of " + displayWidth);
 				screenImage = getScaledInstance(original, displayWidth,
-						(displayWidth * _imageHeight / _imageWidth), hint, false);
+						(displayWidth * _imageHeight / _imageWidth), hint, higherQuality);
 				break;
 			}
 			case Preferences.SCALE_WINDOW: {
@@ -688,11 +690,11 @@ public class Viewer2 extends JPanel {
 				if (_imageWidth > _imageHeight) {
 					log.fine("scaling to width");
 					screenImage = getScaledInstance(original, displayWidth,
-							(displayWidth * _imageHeight / _imageWidth), hint, false);
+							(displayWidth * _imageHeight / _imageWidth), hint, higherQuality);
 				} else {
 					log.fine("scaling to height");
 					screenImage = getScaledInstance(original, (displayHeight * _imageWidth / _imageHeight),
-							displayHeight, hint, false);
+							displayHeight, hint, higherQuality);
 				}
 				break;
 			}
@@ -701,7 +703,7 @@ public class Viewer2 extends JPanel {
 				log.fine("scaling to fixed factor of " + percFormat.format(_f));
 				screenImage = getScaledInstance(original,
 						(int) (displayHeight * _f * (float) _imageWidth / (float) _imageHeight),
-						(int) (displayHeight * _f), hint, false);
+						(int) (displayHeight * _f), hint, higherQuality);
 				break;
 			}
 			case Preferences.SCALE_ORIGINAL: {
