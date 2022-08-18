@@ -8,7 +8,7 @@
                 <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
                 <attribute name="Rsrc-Main-Class" value="it.sineo.jMangaViewer.Launcher"/>
                 <attribute name="Class-Path" value="."/>
-                <attribute name="Rsrc-Class-Path" value="./ commons-logging-1.1.1.jar tika-app-1.4.jar common-image-3.4.2.jar common-io-3.4.2.jar common-lang-3.4.2.jar imageio-core-3.4.2.jar imageio-jpeg-3.4.2.jar imageio-metadata-3.4.2.jar"/>
+                <attribute name="Rsrc-Class-Path" value="./ commons-logging-1.1.1.jar tika-app-1.4.jar common-image-3.4.2.jar common-io-3.4.2.jar common-lang-3.4.2.jar imageio-core-3.4.2.jar imageio-jpeg-3.4.2.jar imageio-metadata-3.4.2.jar imgscalr-lib-4.2.jar"/>
             </manifest>
             <zipfileset src="jar-in-jar-loader.zip"/>
             <fileset dir="/Users/luca/Documents/programmazione/git/jMangaViewer/bin"/>
@@ -21,6 +21,7 @@
             <zipfileset dir="/Users/luca/Documents/programmazione/git/jMangaViewer/libs" includes="imageio-core-3.4.2.jar"/>
             <zipfileset dir="/Users/luca/Documents/programmazione/git/jMangaViewer/libs" includes="imageio-jpeg-3.4.2.jar"/>
             <zipfileset dir="/Users/luca/Documents/programmazione/git/jMangaViewer/libs" includes="imageio-metadata-3.4.2.jar"/>
+            <zipfileset dir="/Users/luca/Documents/programmazione/git/jMangaViewer/libs" includes="imgscalr-lib-4.2.jar"/>
         </jar>
     </target>
 </project>
