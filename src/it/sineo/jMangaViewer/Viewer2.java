@@ -1,7 +1,5 @@
 package it.sineo.jMangaViewer;
 
-import it.sineo.jMangaViewer.util.PatternFormatter;
-
 import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -18,7 +16,6 @@ import java.awt.Point;
 import java.awt.RenderingHints;
 import java.awt.Shape;
 import java.awt.Toolkit;
-import java.awt.Transparency;
 import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
@@ -34,6 +31,7 @@ import java.awt.geom.GeneralPath;
 import java.awt.geom.RoundRectangle2D;
 import java.awt.image.BufferStrategy;
 import java.awt.image.BufferedImage;
+import java.awt.image.BufferedImageOp;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -53,6 +51,11 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
+
+import org.imgscalr.Scalr;
+import org.imgscalr.Scalr.Method;
+
+import it.sineo.jMangaViewer.util.PatternFormatter;
 
 /** @see http://stackoverflow.com/questions/7456227 */
 public class Viewer2 extends JPanel {
@@ -654,34 +657,34 @@ public class Viewer2 extends JPanel {
 		int _imageWidth = original.getWidth();
 		int _imageHeight = original.getHeight();
 		log.fine("called Toolkit.#.getImage(), checking scale factor");
-		Object hint = null;
-		boolean higherQuality = false;
+		boolean mustRescale = true;
+		int scaledWidth = 0, scaledHeight = 0;
+		Method scalingMethod = null;
 		switch (preferences.getScaleQuality()) {
 			case Preferences.QUALITY_FAST: {
-				hint = RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR;
+				scalingMethod = Method.SPEED;
 				break;
 			}
 			case Preferences.QUALITY_MEDIUM: {
-				hint = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
+				scalingMethod = Method.BALANCED;
 				break;
 			}
 			case Preferences.QUALITY_HIGH: {
-				hint = RenderingHints.VALUE_INTERPOLATION_BICUBIC;
-				higherQuality = true;
+				scalingMethod = Method.ULTRA_QUALITY;
 				break;
 			}
 		}
 		switch (preferences.getScaleFactor()) {
 			case Preferences.SCALE_HEIGHT: {
 				log.fine("scaling to fit height of " + displayHeight);
-				screenImage = getScaledInstance(original, (displayHeight * _imageWidth / _imageHeight),
-						displayHeight, hint, higherQuality);
+				scaledWidth = (displayHeight * _imageWidth / _imageHeight);
+				scaledHeight = displayHeight;
 				break;
 			}
 			case Preferences.SCALE_WIDTH: {
 				log.fine("scaling to fit width of " + displayWidth);
-				screenImage = getScaledInstance(original, displayWidth,
-						(displayWidth * _imageHeight / _imageWidth), hint, higherQuality);
+				scaledWidth = displayWidth;
+				scaledHeight = (displayWidth * _imageHeight / _imageWidth);
 				break;
 			}
 			case Preferences.SCALE_WINDOW: {
@@ -689,29 +692,34 @@ public class Viewer2 extends JPanel {
 				log.fine("image loaded: " + imageWidth + "x" + imageHeight);
 				if (_imageWidth > _imageHeight) {
 					log.fine("scaling to width");
-					screenImage = getScaledInstance(original, displayWidth,
-							(displayWidth * _imageHeight / _imageWidth), hint, higherQuality);
+					scaledWidth = displayWidth;
+					scaledHeight = (displayWidth * _imageHeight / _imageWidth);
 				} else {
 					log.fine("scaling to height");
-					screenImage = getScaledInstance(original, (displayHeight * _imageWidth / _imageHeight),
-							displayHeight, hint, higherQuality);
+					scaledWidth = (displayHeight * _imageWidth / _imageHeight);
+					scaledHeight = displayHeight;
 				}
 				break;
 			}
 			case Preferences.SCALE_FIXED: {
 				float _f = preferences.getZoomFactor();
 				log.fine("scaling to fixed factor of " + percFormat.format(_f));
-				screenImage = getScaledInstance(original,
-						(int) (displayHeight * _f * (float) _imageWidth / (float) _imageHeight),
-						(int) (displayHeight * _f), hint, higherQuality);
+				scaledWidth = (int) (displayHeight * _f * (float) _imageWidth / (float) _imageHeight);
+				scaledHeight = (int) (displayHeight * _f);
 				break;
 			}
 			case Preferences.SCALE_ORIGINAL: {
 				log.fine("not scaling due to original size request");
 				// No action.
-				screenImage = original;
+				mustRescale = false;
 				break;
 			}
+		}
+		if (mustRescale) {
+			BufferedImageOp[] unused = {};
+			screenImage = Scalr.resize(original, scalingMethod, scaledWidth, scaledHeight, unused);
+		} else {
+			screenImage = original;
 		}
 		// screenImage is ready.
 		imageWidth = screenImage.getWidth(this);
@@ -1150,76 +1158,6 @@ public class Viewer2 extends JPanel {
 				new Viewer2(null, new Preferences()).display();
 			}
 		});
-	}
-
-	/**
-	 * Convenience method that returns a scaled instance of the provided
-	 * {@code BufferedImage} .
-	 * 
-	 * @param img
-	 *          the original image to be scaled
-	 * @param targetWidth
-	 *          the desired width of the scaled instance, in pixels
-	 * @param targetHeight
-	 *          the desired height of the scaled instance, in pixels
-	 * @param hint
-	 *          one of the rendering hints that corresponds to
-	 *          {@code RenderingHints.KEY_INTERPOLATION} (e.g.
-	 *          {@code RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR},
-	 *          {@code RenderingHints.VALUE_INTERPOLATION_BILINEAR},
-	 *          {@code RenderingHints.VALUE_INTERPOLATION_BICUBIC})
-	 * @param higherQuality
-	 *          if true, this method will use a multi-step scaling technique that
-	 *          provides higher quality than the usual one-step technique (only
-	 *          useful in downscaling cases, where {@code targetWidth} or
-	 *          {@code targetHeight} is smaller than the original dimensions, and
-	 *          generally only when the {@code BILINEAR} hint is specified)
-	 * @return a scaled version of the original {@code BufferedImage}
-	 */
-	public BufferedImage getScaledInstance(BufferedImage img, int targetWidth, int targetHeight,
-			Object hint, boolean higherQuality) {
-		int type = (img.getTransparency() == Transparency.OPAQUE) ? BufferedImage.TYPE_INT_RGB
-				: BufferedImage.TYPE_INT_ARGB;
-		BufferedImage ret = (BufferedImage) img;
-		int w, h;
-		if (higherQuality) {
-			// Use multi-step technique: start with original size, then
-			// scale down in multiple passes with drawImage()
-			// until the target size is reached
-			w = img.getWidth();
-			h = img.getHeight();
-		} else {
-			// Use one-step technique: scale directly from original
-			// size to target size with a single drawImage() call
-			w = targetWidth;
-			h = targetHeight;
-		}
-
-		do {
-			if (higherQuality && w > targetWidth) {
-				w /= 2;
-				if (w < targetWidth) {
-					w = targetWidth;
-				}
-			}
-
-			if (higherQuality && h > targetHeight) {
-				h /= 2;
-				if (h < targetHeight) {
-					h = targetHeight;
-				}
-			}
-
-			BufferedImage tmp = new BufferedImage(w, h, type);
-			Graphics2D g2 = tmp.createGraphics();
-			g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, hint);
-			g2.drawImage(ret, 0, 0, w, h, null);
-			g2.dispose();
-
-			ret = tmp;
-		} while (w != targetWidth || h != targetHeight);
-
-		return ret;
 	}
 
 	private int fixedScrollWidth() {
