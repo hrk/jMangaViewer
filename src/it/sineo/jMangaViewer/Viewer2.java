@@ -79,6 +79,8 @@ public class Viewer2 extends JPanel {
 	private final static String SHOW_FIRST_PAGE = "show_first_page";
 	private final static String SHOW_LAST_PAGE = "show_last_page";
 	private final static String SCROLL = "scroll";
+	private final static String JOIN_NEXT = "join_next";
+	private final static String JOIN_PREV = "join_prev";
 	/* Scale factor */
 	private final static String SCALE_WIDTH = "scale_width";
 	private final static String SCALE_HEIGHT = "scale_height";
@@ -96,6 +98,12 @@ public class Viewer2 extends JPanel {
 	private final static String READING_STYLE_R2L = "reading_r2l";
 	private final static String SCROLL_PRIORITY_HORIZONTAL = "prio_h";
 	private final static String SCROLL_PRIORITY_VERTICAL = "prio_v";
+
+	/* (page) Joined status */
+	private final static byte JOINED_NONE = 0;
+	private final static byte JOINED_NEXT = 1;
+	private final static byte JOINED_PREV = -1;
+	private byte joined = JOINED_NONE;
 
 	private JFrame f = new JFrame("jMangaViewer");
 	private GraphicsDevice device;
@@ -376,7 +384,27 @@ public class Viewer2 extends JPanel {
 				preferences.setZoomFactor(_z * _c);
 				log.fine("new zoomFactor: screen=" + preferences.getZoomFactor());
 			}
-			load(comicBook.getCurrentPageURL());
+			switch (joined) {
+				/*
+				 * Remember: getXPageURL() has the side-effect of moving the index in
+				 * the comicbook. Considering that we want to keep the index to
+				 * "Current page", we need a bit of weird calls.
+				 */
+				case JOINED_NEXT: {
+					/* Advance index and then go back one to reset it */
+					URL urlJoined = comicBook.getNextPageURL();
+					load(comicBook.getPreviousPageURL(), urlJoined);
+					break;
+				}
+				case JOINED_PREV: {
+					/* Go back one and then go forward (to keep the current index) */
+					load(comicBook.getPreviousPageURL(), comicBook.getNextPageURL());
+					break;
+				}
+				default: /* JOINED_NONE */ {
+					load(comicBook.getCurrentPageURL());
+				}
+			}
 			updatePaintPosition(-1, -1);
 			renderWrapper();
 		}
@@ -439,6 +467,25 @@ public class Viewer2 extends JPanel {
 		}
 	}
 
+	private class JoinPageAction extends AbstractAction {
+		private static final long serialVersionUID = 1L;
+
+		public JoinPageAction(String action) {
+			putValue(ACTION_KEY, action);
+		}
+
+		public void actionPerformed(ActionEvent e) {
+			final String key = (String) getValue(ACTION_KEY);
+			log.fine("requested to join page, type: " + key);
+
+			if (JOIN_NEXT.equals(key)) {
+				joinNextPage();
+			} else if (JOIN_PREV.equals(key)) {
+				joinPreviousPage();
+			}
+		}
+	}
+
 	/*
 	 * Constructor
 	 */
@@ -471,6 +518,8 @@ public class Viewer2 extends JPanel {
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_END, 0), SHOW_LAST_PAGE);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_P, 0), GO_TO_PAGE);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0), SCROLL);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_J, 0), JOIN_NEXT);
+		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_K, 0), JOIN_PREV);
 
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_W, 0), SCALE_WIDTH);
 		getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_H, 0), SCALE_HEIGHT);
@@ -507,6 +556,8 @@ public class Viewer2 extends JPanel {
 		getActionMap().put(SHOW_FIRST_PAGE, new NavigateAction(SHOW_FIRST_PAGE));
 		getActionMap().put(SHOW_LAST_PAGE, new NavigateAction(SHOW_LAST_PAGE));
 		getActionMap().put(SCROLL, new NavigateAction(SCROLL));
+		getActionMap().put(JOIN_NEXT, new JoinPageAction(JOIN_NEXT));
+		getActionMap().put(JOIN_PREV, new JoinPageAction(JOIN_PREV));
 
 		getActionMap().put(SCALE_WIDTH, new ScaleFactorAction(SCALE_WIDTH));
 		getActionMap().put(SCALE_HEIGHT, new ScaleFactorAction(SCALE_HEIGHT));
@@ -638,6 +689,10 @@ public class Viewer2 extends JPanel {
 	}
 
 	private void load(URL imageURL) {
+		load(imageURL, null);
+	}
+
+	private void load(URL imageURL, URL joinedImageURL) {
 		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 		long t0 = System.currentTimeMillis();
 		log.fine("loading " + imageURL);
@@ -648,14 +703,22 @@ public class Viewer2 extends JPanel {
 		ignoreY = false;
 		mouseLastCheck = 0;
 
-		BufferedImage original = null;
+		BufferedImage original = null, joined = null;
 		try {
 			original = ImageIO.read(imageURL);
+			if (joinedImageURL != null) {
+				joined = ImageIO.read(joinedImageURL);
+			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
 		int _imageWidth = original.getWidth();
 		int _imageHeight = original.getHeight();
+		if (joined != null) {
+			/* Join only works horizontally */
+			_imageWidth += joined.getWidth();
+			_imageHeight = Math.max(_imageHeight, joined.getHeight());
+		}
 		log.fine("called Toolkit.#.getImage(), checking scale factor");
 		boolean mustRescale = true;
 		int scaledWidth = 0, scaledHeight = 0;
@@ -715,6 +778,26 @@ public class Viewer2 extends JPanel {
 				break;
 			}
 		}
+
+		if (joined != null) {
+			BufferedImage merged = new BufferedImage(_imageWidth, _imageHeight,
+					BufferedImage.TYPE_INT_ARGB);
+			Graphics g = merged.getGraphics();
+			switch (preferences.getReadingStyle()) {
+				case Preferences.READING_LEFT_TO_RIGHT: {
+					g.drawImage(original, 0, 0, null);
+					g.drawImage(joined, original.getWidth(), 0, null);
+					break;
+				}
+				case Preferences.READING_RIGHT_TO_LEFT: {
+					g.drawImage(original, joined.getWidth(), 0, null);
+					g.drawImage(joined, 0, 0, null);
+					break;
+				}
+			}
+			g.dispose();
+			original = merged;
+		}
 		if (mustRescale) {
 			BufferedImageOp[] unused = {};
 			screenImage = Scalr.resize(original, scalingMethod, scaledWidth, scaledHeight, unused);
@@ -726,9 +809,8 @@ public class Viewer2 extends JPanel {
 		imageHeight = screenImage.getHeight(this);
 		log.fine("image loaded: " + imageWidth + "x" + imageHeight);
 
-		int originalWidth = original.getWidth(this);
-		log.fine("original width: " + originalWidth);
-		zoomFactor = (float) imageWidth / (float) originalWidth;
+		log.fine("original width: " + _imageWidth);
+		zoomFactor = (float) imageWidth / (float) _imageWidth;
 		sZoomFactor = percFormat.format(zoomFactor);
 
 		if (imageWidth <= displayWidth) {
@@ -809,6 +891,7 @@ public class Viewer2 extends JPanel {
 			log.fine("interrupting overlayThread due to page change");
 			overlayThread.interrupt();
 		}
+		joined = JOINED_NONE;
 		load(this.comicBook.getFirstPageURL());
 		updatePaintPosition(-1, -1);
 		renderWrapper();
@@ -819,6 +902,7 @@ public class Viewer2 extends JPanel {
 			log.fine("interrupting overlayThread due to page change");
 			overlayThread.interrupt();
 		}
+		joined = JOINED_NONE;
 		load(this.comicBook.getLastPageURL());
 		updatePaintPosition(-1, -1);
 		renderWrapper();
@@ -833,6 +917,7 @@ public class Viewer2 extends JPanel {
 		while (this.comicBook.getCurrentPageNumber() < page) {
 			this.comicBook.getNextPageURL();
 		}
+		joined = JOINED_NONE;
 		load(this.comicBook.getCurrentPageURL());
 		updatePaintPosition(-1, -1);
 		renderWrapper();
@@ -844,6 +929,7 @@ public class Viewer2 extends JPanel {
 				log.fine("interrupting overlayThread due to page change");
 				overlayThread.interrupt();
 			}
+			joined = JOINED_NONE;
 			load(this.comicBook.getNextPageURL());
 			updatePaintPosition(-1, -1);
 			renderWrapper();
@@ -864,9 +950,62 @@ public class Viewer2 extends JPanel {
 				log.fine("interrupting overlayThread due to page change");
 				overlayThread.interrupt();
 			}
+			joined = JOINED_NONE;
 			load(this.comicBook.getPreviousPageURL());
 			updatePaintPosition(-1, -1);
 			// repaint();
+			renderWrapper();
+		} else {
+			if (overlayThread == null) {
+				shape = startOfComicBookPath();
+				dirty = true;
+				renderWrapper();
+				overlayThread = new Thread(new OverlayRunnable());
+				overlayThread.start();
+			}
+		}
+	}
+
+	private void joinNextPage() {
+		if (this.comicBook.hasNextPage()) {
+			if (overlayThread != null) {
+				log.fine("interrupting OverlayThread due to page join request");
+				overlayThread.interrupt();
+			}
+			joined = JOINED_NEXT;
+			/*
+			 * Reminder: comicBook.getXPageURL() has side effects, so advance index
+			 * and then go back one to reset it
+			 */
+			URL urlJoined = comicBook.getNextPageURL();
+			load(comicBook.getPreviousPageURL(), urlJoined);
+			updatePaintPosition(-1, -1);
+			renderWrapper();
+		} else {
+			if (overlayThread == null) {
+				shape = endOfComicBookPath();
+				dirty = true;
+				renderWrapper();
+				overlayThread = new Thread(new OverlayRunnable());
+				overlayThread.start();
+			}
+		}
+
+	}
+
+	private void joinPreviousPage() {
+		if (this.comicBook.hasPreviousPage()) {
+			if (overlayThread != null) {
+				log.fine("interrupting OverlayThread due to page join request");
+				overlayThread.interrupt();
+			}
+			joined = JOINED_PREV;
+			/*
+			 * Reminder: comicBook.getXPageURL() has side effects, so go back one and
+			 * then go forward to keep the current index.
+			 */
+			load(comicBook.getPreviousPageURL(), comicBook.getNextPageURL());
+			updatePaintPosition(-1, -1);
 			renderWrapper();
 		} else {
 			if (overlayThread == null) {
