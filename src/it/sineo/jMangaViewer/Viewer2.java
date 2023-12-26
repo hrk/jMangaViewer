@@ -139,8 +139,8 @@ public class Viewer2 extends JPanel {
 	Paint whitePaint = new Color(0xFF, 0xFF, 0xFF, 0xFF);
 	Font font;
 	/*
- * 
- */
+	 * Other
+	 */
 	private ComicBook comicBook;
 	private Preferences preferences;
 	private int messageDuration = 3000;
@@ -526,8 +526,8 @@ public class Viewer2 extends JPanel {
 
 		getActionMap().put(SCROLL_PRIORITY_HORIZONTAL,
 				new ScrollPriorityAction(SCROLL_PRIORITY_HORIZONTAL));
-		getActionMap()
-				.put(SCROLL_PRIORITY_VERTICAL, new ScrollPriorityAction(SCROLL_PRIORITY_VERTICAL));
+		getActionMap().put(SCROLL_PRIORITY_VERTICAL,
+				new ScrollPriorityAction(SCROLL_PRIORITY_VERTICAL));
 
 		getActionMap().put(TOGGLE_OSD, toggleOSDAction);
 
@@ -790,9 +790,9 @@ public class Viewer2 extends JPanel {
 			 */
 			int y = pLastPaint.y;
 			if (!ignoreY) {
-				if (deltaY < 0 && (y + deltaY + (.3*deltaY) + imageHeight < displayHeight)) {
+				if (deltaY < 0 && (y + deltaY + (.3 * deltaY) + imageHeight < displayHeight)) {
 					y = displayHeight - imageHeight;
-				} else if (deltaY > 0 && (y + deltaY + (.3*deltaY)> 0)) {
+				} else if (deltaY > 0 && (y + deltaY + (.3 * deltaY) > 0)) {
 					y = 0;
 				} else {
 					y += deltaY;
@@ -903,8 +903,7 @@ public class Viewer2 extends JPanel {
 				g.setColor(Color.BLACK);
 				g.fillRect(0, 0, displayWidth, displayHeight);
 				long original_t0 = System.currentTimeMillis();
-				boolean complete = g.drawImage(screenImage, pPaint.x, pPaint.y, /* this */
-						f);
+				boolean complete = g.drawImage(screenImage, pPaint.x, pPaint.y, f);
 				long original_t1 = System.currentTimeMillis();
 				log.fine("time to draw original: " + (original_t1 - original_t0) + " ms (complete? "
 						+ complete + ")");
@@ -1002,7 +1001,8 @@ public class Viewer2 extends JPanel {
 					/*
 					 * Prepare a square background bounding box for the shape.
 					 */
-					int maxDimension = shape.getBounds().height > shape.getBounds().width ? shape.getBounds().height
+					int maxDimension = shape.getBounds().height > shape.getBounds().width
+							? shape.getBounds().height
 							: shape.getBounds().width;
 					int boundingBoxSize = maxDimension + strokeWidth * 6;
 					Shape boundingBox = new RoundRectangle2D.Float((displayWidth - boundingBoxSize) / 2,
@@ -1128,8 +1128,8 @@ public class Viewer2 extends JPanel {
 		final String vendor = p.getProperty("java.vm.vendor");
 		if (vendor != null) {
 			if (vendor.indexOf("Apple") != -1) {
-				return "2.0".equals(Toolkit.getDefaultToolkit().getDesktopProperty(
-						"apple.awt.contentScaleFactor"));
+				return "2.0"
+						.equals(Toolkit.getDefaultToolkit().getDesktopProperty("apple.awt.contentScaleFactor"));
 			} else if (vendor.indexOf("Oracle") != -1 || vendor.indexOf("AdoptOpenJDK") != -1) {
 				GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 				final GraphicsDevice device = env.getDefaultScreenDevice();

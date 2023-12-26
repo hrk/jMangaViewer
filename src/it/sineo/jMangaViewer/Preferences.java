@@ -108,8 +108,8 @@ public class Preferences {
 	public Preferences() {
 		try {
 			Properties p = new Properties();
-			FileInputStream fis = new FileInputStream(System.getProperty("user.home", "${user.home}")
-					+ "/.jMangaViewer.properties");
+			FileInputStream fis = new FileInputStream(
+					System.getProperty("user.home", "${user.home}") + "/.jMangaViewer.properties");
 			p.load(fis);
 			setScaleFactor(read(p, "scaleFactor", SCALE_ORIGINAL));
 			setZoomFactor(read(p, "zoomFactor", 1.0f));
@@ -142,8 +142,8 @@ public class Preferences {
 
 	public void save() {
 		try {
-			File file = new File(System.getProperty("user.home", "${user.home}")
-					+ "/.jMangaViewer.properties");
+			File file = new File(
+					System.getProperty("user.home", "${user.home}") + "/.jMangaViewer.properties");
 			log.info("saving preferences into file " + file);
 			Properties p = new Properties();
 			p.setProperty("scaleFactor", Integer.toString(getScaleFactor()));
@@ -255,8 +255,8 @@ public class Preferences {
 				break;
 			}
 			default: {
-				throw new IllegalArgumentException("Unmapped value for on screen display: "
-						+ onScreenDisplay);
+				throw new IllegalArgumentException(
+						"Unmapped value for on screen display: " + onScreenDisplay);
 			}
 		}
 	}
