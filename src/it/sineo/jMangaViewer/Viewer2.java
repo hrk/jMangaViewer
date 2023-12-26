@@ -924,7 +924,13 @@ public class Viewer2 extends JPanel {
 	}
 
 	private void showNextPage() {
-		if (this.comicBook.hasNextPage()) {
+		/*
+		 * Since this can be called by space-scrolling, we need to perform an extra
+		 * check because JOINED_NEXT needs to have two "next" pages available, since
+		 * the first one will be skipped.
+		 */
+		if ((joined != JOINED_NEXT && this.comicBook.hasNextPage()) || (joined == JOINED_NEXT
+				&& comicBook.getCurrentPageNumber() < comicBook.getNumberOfPages() - 1)) {
 			if (overlayThread != null) {
 				log.fine("interrupting overlayThread due to page change");
 				overlayThread.interrupt();
