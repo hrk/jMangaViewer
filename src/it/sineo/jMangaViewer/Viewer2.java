@@ -929,6 +929,10 @@ public class Viewer2 extends JPanel {
 				log.fine("interrupting overlayThread due to page change");
 				overlayThread.interrupt();
 			}
+			if (joined == JOINED_NEXT) {
+				/* Jump an extra page */
+				this.comicBook.getNextPageURL();
+			}
 			joined = JOINED_NONE;
 			load(this.comicBook.getNextPageURL());
 			updatePaintPosition(-1, -1);
@@ -949,6 +953,10 @@ public class Viewer2 extends JPanel {
 			if (overlayThread != null) {
 				log.fine("interrupting overlayThread due to page change");
 				overlayThread.interrupt();
+			}
+			if (joined == JOINED_PREV) {
+				/* Jump an extra page */
+				this.comicBook.getPreviousPageURL();
 			}
 			joined = JOINED_NONE;
 			load(this.comicBook.getPreviousPageURL());
@@ -1248,6 +1256,36 @@ public class Viewer2 extends JPanel {
 
 	private String getCurrentImageName() {
 		URL u = this.comicBook.getCurrentPageURL();
+		String s1 = null, s2 = null, format = null;
+
+		switch (joined) {
+			case JOINED_NEXT: {
+				s1 = pageNameFromURL(this.comicBook.getCurrentPageURL());
+				s2 = pageNameFromURL(this.comicBook.getNextPageURL());
+				/* And the necessary side-effect */
+				this.comicBook.getPreviousPageURL();
+				format = "{0} + {1}";
+				break;
+			}
+			case JOINED_PREV: {
+				s1 = pageNameFromURL(this.comicBook.getCurrentPageURL());
+				s2 = pageNameFromURL(this.comicBook.getPreviousPageURL());
+				/* And the necessary side-effect */
+				this.comicBook.getNextPageURL();
+				format = "{1} + {0}";
+				break;
+			}
+			case JOINED_NONE:
+			default: {
+				s1 = pageNameFromURL(this.comicBook.getCurrentPageURL());
+				format = "{0}";
+				break;
+			}
+		}
+		return MessageFormat.format(format, s1, s2);
+	}
+
+	private String pageNameFromURL(URL u) {
 		String s = u.toExternalForm();
 		int lastSeparator = s.lastIndexOf('/');
 		if (lastSeparator != -1) {
