@@ -33,7 +33,7 @@ public class ComicBookPageComparator implements Comparator<URL> {
 
 			// If both segments start with a digit, sort them numerically using
 			// BigInteger to stay safe
-			if (c1 >= '0' && c1 <= '9' && c2 >= 0 && c2 <= '9')
+			if (c1 >= '0' && c1 <= '9' && c2 >= '0' && c2 <= '9')
 				cmp = new BigInteger(split1[i]).compareTo(new BigInteger(split2[i]));
 
 			// If we haven't sorted numerically before, or if numeric sorting yielded
