@@ -476,12 +476,17 @@ public class Viewer2 extends JPanel {
 
 		public void actionPerformed(ActionEvent e) {
 			final String key = (String) getValue(ACTION_KEY);
-			log.fine("requested to join page, type: " + key);
+			if (joined == JOINED_NONE) {
+				log.fine("requested to join page, type: " + key);
 
-			if (JOIN_NEXT.equals(key)) {
-				joinNextPage();
-			} else if (JOIN_PREV.equals(key)) {
-				joinPreviousPage();
+				if (JOIN_NEXT.equals(key)) {
+					joinNextPage();
+				} else if (JOIN_PREV.equals(key)) {
+					joinPreviousPage();
+				}
+			} else {
+				log.fine("requested to unjoin pages");
+				unjoinPages();
 			}
 		}
 	}
@@ -1030,6 +1035,17 @@ public class Viewer2 extends JPanel {
 				overlayThread.start();
 			}
 		}
+	}
+
+	private void unjoinPages() {
+		if (overlayThread != null) {
+			log.fine("interrupting OverlayThread due to page join request");
+			overlayThread.interrupt();
+		}
+		joined = JOINED_NONE;
+		load(comicBook.getCurrentPageURL());
+		updatePaintPosition(-1, -1);
+		renderWrapper();
 	}
 
 	/*
