@@ -1329,7 +1329,8 @@ public class Viewer2 extends JPanel {
 			if (vendor.indexOf("Apple") != -1) {
 				return "2.0"
 						.equals(Toolkit.getDefaultToolkit().getDesktopProperty("apple.awt.contentScaleFactor"));
-			} else if (vendor.indexOf("Oracle") != -1 || vendor.indexOf("AdoptOpenJDK") != -1) {
+			} else if (vendor.indexOf("Oracle") != -1 || vendor.indexOf("AdoptOpenJDK") != -1
+					|| vendor.indexOf("Eclipse Adoptium") != -1) {
 				GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 				final GraphicsDevice device = env.getDefaultScreenDevice();
 				try {
@@ -1339,12 +1340,16 @@ public class Viewer2 extends JPanel {
 						field.setAccessible(true);
 						Object scale = field.get(device);
 
+						/* TODO: what about fractional that are available on Linux? */
 						if (scale instanceof Integer && ((Integer) scale).intValue() == 2) {
 							return true;
 						}
 					}
 				} catch (Exception ignore) {
+					log.severe("got exception during reflection call: " + ignore.getMessage());
 				}
+			} else {
+				log.severe("unknown vendor: " + vendor);
 			}
 		}
 		return false;
