@@ -41,15 +41,18 @@ public class Preferences {
 	private float zoomFactor = 1.0f;
 
 	/**
-	 * Corresponds to SCALE_SMOOTH
+	 * Corresponds to Scalr.Method.ULTRA_QUALITY. Mapped to Image.SCALE_SMOOTH (4)
+	 * for historical reasons.
 	 */
 	public final static int QUALITY_HIGH = Image.SCALE_SMOOTH;
 	/**
-	 * Corresponds to SCALE_AREA_AVERAGE
+	 * Corresponds to Scalr.Method.QUALITY. Mapped to Image.SCALE_AREA_AVERAGE
+	 * (16) for historical reasons.
 	 */
 	public final static int QUALITY_MEDIUM = Image.SCALE_AREA_AVERAGING;
 	/**
-	 * Corresponds to SCALE_FAST
+	 * Corresponds to Scalr.Method.SPEED. Mapped to Image.SCALE_FAST (2) for
+	 * historical reasons.
 	 */
 	public final static int QUALITY_FAST = Image.SCALE_FAST;
 

@@ -734,7 +734,7 @@ public class Viewer2 extends JPanel {
 				break;
 			}
 			case Preferences.QUALITY_MEDIUM: {
-				scalingMethod = Method.BALANCED;
+				scalingMethod = Method.QUALITY;
 				break;
 			}
 			case Preferences.QUALITY_HIGH: {
@@ -804,8 +804,8 @@ public class Viewer2 extends JPanel {
 			original = merged;
 		}
 		if (mustRescale) {
-			BufferedImageOp[] unused = {};
-			screenImage = Scalr.resize(original, scalingMethod, scaledWidth, scaledHeight, unused);
+			BufferedImageOp[] options = { Scalr.OP_ANTIALIAS };
+			screenImage = Scalr.resize(original, scalingMethod, scaledWidth, scaledHeight, options);
 		} else {
 			screenImage = original;
 		}
