@@ -56,7 +56,6 @@
 			</manifest>
 			<fileset dir="${basedir}/bin" />
 			<fileset dir="${basedir}/../JavaUnrar/bin" />
-			<zipfileset excludes="META-INF/*.SF" src="${basedir}/../commonLibs/commons-logging-api-1.1.1.jar" />
 		</jar>
 	</target>
 	<target name="compile">
