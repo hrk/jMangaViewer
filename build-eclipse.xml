@@ -2,23 +2,24 @@
 <project default="create_run_jar" name="Create Runnable Jar for Project jMangaViewer with Jar-in-Jar Loader">
     <!--this file was created by Eclipse Runnable JAR Export Wizard-->
     <!--ANT 1.7 is required                                        -->
+	<property name="iio.ver" value="3.13.0"/>
     <target name="create_run_jar">
         <jar destfile="${basedir}/jMangaViewer.jar">
             <manifest>
                 <attribute name="Main-Class" value="org.eclipse.jdt.internal.jarinjarloader.JarRsrcLoader"/>
                 <attribute name="Rsrc-Main-Class" value="it.sineo.jMangaViewer.Launcher"/>
                 <attribute name="Class-Path" value="."/>
-                <attribute name="Rsrc-Class-Path" value="./ common-image-3.12.0.jar common-io-3.12.0.jar common-lang-3.12.0.jar imageio-core-3.12.0.jar imageio-jpeg-3.12.0.jar imageio-metadata-3.12.0.jar imgscalr-lib-4.2.jar"/>
+                <attribute name="Rsrc-Class-Path" value="./ common-image-${iio.ver}.jar common-io-${iio.ver}.jar common-lang-${iio.ver}.jar imageio-core-${iio.ver}.jar imageio-jpeg-${iio.ver}.jar imageio-metadata-${iio.ver}.jar imgscalr-lib-4.2.jar"/>
             </manifest>
             <zipfileset src="jar-in-jar-loader.zip"/>
             <fileset dir="${basedir}/bin"/>
             <fileset dir="/Users/luca/Documents/programmazione/git/java-unrar/target"/>
-            <zipfileset dir="${basedir}/libs" includes="common-image-3.12.0.jar"/>
-            <zipfileset dir="${basedir}/libs" includes="common-io-3.12.0.jar"/>
-            <zipfileset dir="${basedir}/libs" includes="common-lang-3.12.0.jar"/>
-            <zipfileset dir="${basedir}/libs" includes="imageio-core-3.12.0.jar"/>
-            <zipfileset dir="${basedir}/libs" includes="imageio-jpeg-3.12.0.jar"/>
-            <zipfileset dir="${basedir}/libs" includes="imageio-metadata-3.12.0.jar"/>
+            <zipfileset dir="${basedir}/libs" includes="common-image-${iio.ver}.jar"/>
+            <zipfileset dir="${basedir}/libs" includes="common-io-${iio.ver}.jar"/>
+            <zipfileset dir="${basedir}/libs" includes="common-lang-${iio.ver}.jar"/>
+            <zipfileset dir="${basedir}/libs" includes="imageio-core-${iio.ver}.jar"/>
+            <zipfileset dir="${basedir}/libs" includes="imageio-jpeg-${iio.ver}.jar"/>
+            <zipfileset dir="${basedir}/libs" includes="imageio-metadata-${iio.ver}.jar"/>
             <zipfileset dir="${basedir}/libs" includes="imgscalr-lib-4.2.jar"/>
         </jar>
     </target>
