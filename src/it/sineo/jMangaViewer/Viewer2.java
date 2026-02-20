@@ -898,8 +898,12 @@ public class Viewer2 extends JPanel {
 		}
 		joined = JOINED_NONE;
 		load(this.comicBook.getFirstPageURL());
-		updatePaintPosition(-1, -1);
-		renderWrapper();
+		if (isImplicitMangaPlusJoinNext()) {
+			joinNextPage();
+		} else {
+			updatePaintPosition(-1, -1);
+			renderWrapper();
+		}
 	}
 
 	private void showLastPage() {
@@ -909,8 +913,12 @@ public class Viewer2 extends JPanel {
 		}
 		joined = JOINED_NONE;
 		load(this.comicBook.getLastPageURL());
-		updatePaintPosition(-1, -1);
-		renderWrapper();
+		if (isImplicitMangaPlusJoinPrevious()) {
+			joinPreviousPage();
+		} else {
+			updatePaintPosition(-1, -1);
+			renderWrapper();
+		}
 	}
 
 	private void showPage(int page) {
@@ -924,8 +932,14 @@ public class Viewer2 extends JPanel {
 		}
 		joined = JOINED_NONE;
 		load(this.comicBook.getCurrentPageURL());
-		updatePaintPosition(-1, -1);
-		renderWrapper();
+		if (isImplicitMangaPlusJoinNext()) {
+			joinNextPage();
+		} else if (isImplicitMangaPlusJoinPrevious()) {
+			joinPreviousPage();
+		} else {
+			updatePaintPosition(-1, -1);
+			renderWrapper();
+		}
 	}
 
 	private void showNextPage() {
@@ -946,8 +960,12 @@ public class Viewer2 extends JPanel {
 			}
 			joined = JOINED_NONE;
 			load(this.comicBook.getNextPageURL());
-			updatePaintPosition(-1, -1);
-			renderWrapper();
+			if (isImplicitMangaPlusJoinNext()) {
+				joinNextPage();
+			} else {
+				updatePaintPosition(-1, -1);
+				renderWrapper();
+			}
 		} else {
 			if (overlayThread == null) {
 				shape = endOfComicBookPath();
@@ -971,9 +989,12 @@ public class Viewer2 extends JPanel {
 			}
 			joined = JOINED_NONE;
 			load(this.comicBook.getPreviousPageURL());
-			updatePaintPosition(-1, -1);
-			// repaint();
-			renderWrapper();
+			if (isImplicitMangaPlusJoinPrevious()) {
+				joinPreviousPage();
+			} else {
+				updatePaintPosition(-1, -1);
+				renderWrapper();
+			}
 		} else {
 			if (overlayThread == null) {
 				shape = startOfComicBookPath();
@@ -1046,6 +1067,40 @@ public class Viewer2 extends JPanel {
 		load(comicBook.getCurrentPageURL());
 		updatePaintPosition(-1, -1);
 		renderWrapper();
+	}
+
+	private boolean isImplicitMangaPlusJoin(String check) {
+		/*
+		 * Only for MangaPlus (obviously): we can recognize it by the presence of
+		 * _[MangaPlus]_ in the URL path. Note the URL Encoded brackets.
+		 */
+		if (this.comicBook.getCurrentPageURL().getPath().contains("_%5BMangaPlus%5D_")) {
+			/*
+			 * The naming convention is fixed for MangaPlus: either our userscript
+			 * downloader or the official webp sources. If the file name contains "-"
+			 * we already joined the pages at the file level (so no implicit join is
+			 * required). We join if the file name ends with a "r" or "l" before the
+			 * extension (es: 4r.webp + 5l.webp --> these must be joined)
+			 */
+			String file = this.comicBook.getCurrentPageURL().getFile();
+			file = file.substring(file.lastIndexOf('/') + 1);
+			log.fine("checking MangaPlus implicit join for file " + file);
+			if (!file.contains("-") && file.contains(check)) {
+				log.fine("implicit join detected, joining pages!");
+				return true;
+			} else {
+				return false;
+			}
+		}
+		return false;
+	}
+
+	private boolean isImplicitMangaPlusJoinNext() {
+		return isImplicitMangaPlusJoin("r.");
+	}
+
+	private boolean isImplicitMangaPlusJoinPrevious() {
+		return isImplicitMangaPlusJoin("l.");
 	}
 
 	/*
