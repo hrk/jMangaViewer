@@ -14,7 +14,6 @@ public class ImageFileFilter implements FileFilter, FilenameFilter {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.io.FileFilter#accept(java.io.File)
 	 */
 	public boolean accept(final File file) {
@@ -23,7 +22,6 @@ public class ImageFileFilter implements FileFilter, FilenameFilter {
 
 	/*
 	 * (non-Javadoc)
-	 * 
 	 * @see java.io.FilenameFilter#accept(java.io.File, java.lang.String)
 	 */
 	public boolean accept(final File dir, final String name) {
@@ -38,7 +36,8 @@ public class ImageFileFilter implements FileFilter, FilenameFilter {
 			 */
 			return false;
 		}
-		return (n.endsWith(".png") || n.endsWith(".jpg") || n.endsWith(".jpeg") || n.endsWith(".gif"));
+		return (n.endsWith(".png") || n.endsWith(".jpg") || n.endsWith(".jpeg") || n.endsWith(".gif")
+				|| n.endsWith(".webp"));
 	}
 
 }
