@@ -70,7 +70,7 @@ public class Viewer2 extends JPanel {
 	private final static String EXIT = "exit";
 	private final static String SAVE_PICTURE = "save_picture";
 	private final static String SHOW_HIDE = "show_hide";
-	private final static String TOGGLE_OSD = "toggle_old";
+	private final static String TOGGLE_OSD = "toggle_osd";
 	private final static String GO_LEFT = "go_left";
 	private final static String GO_RIGHT = "go_right";
 	private final static String GO_UP = "go_up";
