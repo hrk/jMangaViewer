@@ -39,7 +39,6 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.text.NumberFormat;
 import java.util.Arrays;
-import java.util.Properties;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -1377,14 +1376,24 @@ public class Viewer2 extends JPanel {
 	}
 
 	protected boolean isHiDPI() {
-		Properties p = System.getProperties();
-		final String vendor = p.getProperty("java.vm.vendor");
-		if (vendor != null) {
-			if (vendor.indexOf("Apple") != -1) {
+		final String[] splitVersion = System.getProperty("java.version").split("\\.");
+		if (Integer.parseInt(splitVersion[0]) != 1) {
+			/*
+			 * Starting with Java 9, we can use
+			 * GraphicsConfiguration().getDefaultTransform().getScaleX() reliably
+			 */
+			double scaleX = f.getGraphicsConfiguration().getDefaultTransform().getScaleX();
+			log.info("Java9+ detected; scaleX: " + scaleX);
+			return scaleX >= 2.0;
+		} else {
+			final String vendor = System.getProperty("java.vm.vendor");
+			if (vendor != null && vendor.indexOf("Apple") != -1) {
 				return "2.0"
 						.equals(Toolkit.getDefaultToolkit().getDesktopProperty("apple.awt.contentScaleFactor"));
-			} else if (vendor.indexOf("Oracle") != -1 || vendor.indexOf("AdoptOpenJDK") != -1
-					|| vendor.indexOf("Eclipse Adoptium") != -1) {
+			} else {
+				/*
+				 * Attempt using a hidden, deprecated and protected field via reflection
+				 */
 				GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
 				final GraphicsDevice device = env.getDefaultScreenDevice();
 				try {
@@ -1394,19 +1403,16 @@ public class Viewer2 extends JPanel {
 						field.setAccessible(true);
 						Object scale = field.get(device);
 
-						/* TODO: what about fractional that are available on Linux? */
-						if (scale instanceof Integer && ((Integer) scale).intValue() == 2) {
+						if (scale instanceof Integer && ((Integer) scale).intValue() >= 2) {
 							return true;
 						}
 					}
 				} catch (Exception ignore) {
 					log.severe("got exception during reflection call: " + ignore.getMessage());
 				}
-			} else {
-				log.severe("unknown vendor: " + vendor);
 			}
+			return false;
 		}
-		return false;
 	}
 
 	public static void main(String[] args) {
