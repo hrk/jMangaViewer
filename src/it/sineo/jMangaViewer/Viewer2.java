@@ -1332,7 +1332,6 @@ public class Viewer2 extends JPanel {
 	}
 
 	private String getCurrentImageName() {
-		URL u = this.comicBook.getCurrentPageURL();
 		String s1 = null, s2 = null, format = null;
 
 		switch (joined) {
