@@ -1,9 +1,5 @@
 package it.sineo.jMangaViewer;
 
-import it.sineo.jMangaViewer.util.ComicBookFileFilter;
-import it.sineo.jMangaViewer.util.ComicBookPageComparator;
-import it.sineo.jMangaViewer.util.ImageFileFilter;
-
 import java.awt.EventQueue;
 import java.awt.FileDialog;
 import java.io.File;
@@ -27,8 +23,11 @@ import javax.swing.UIManager;
 
 import de.innosystec.unrar.Archive;
 import de.innosystec.unrar.exception.RarException;
-import de.innosystec.unrar.protocols.rar.Handler;
 import de.innosystec.unrar.rarfile.FileHeader;
+import it.sineo.jMangaViewer.util.ComicBookFileFilter;
+import it.sineo.jMangaViewer.util.ComicBookPageComparator;
+import it.sineo.jMangaViewer.util.ImageFileFilter;
+import it.sineo.jMangaViewer.util.PatternFormatter;
 
 public class Launcher {
 
@@ -46,6 +45,7 @@ public class Launcher {
 
 		ConsoleHandler ch = new ConsoleHandler();
 		ch.setLevel(Level.ALL);
+		ch.setFormatter(new PatternFormatter());
 		log.addHandler(ch);
 		log.setLevel(Level.ALL);
 
@@ -162,7 +162,7 @@ public class Launcher {
 							File fDummy = new File(entry.getFileNameString());
 							log.fine("fDummy: " + fDummy.toURI());
 							URL url = new URL("rar", null, -1, buildPath(file, entry.getFileNameString()),
-									new Handler());
+									new de.innosystec.unrar.protocols.rar.Handler());
 							// log.fine("adding " + url.toString());
 							urls.add(url);
 						}
