@@ -164,8 +164,7 @@ public class Viewer2 extends JPanel {
 			shape = null;
 			dirty = true;
 			overlayThread = null;
-			// repaint();
-			renderWrapper();
+			repaint();
 		}
 	}
 
@@ -186,13 +185,13 @@ public class Viewer2 extends JPanel {
 
 		public void actionPerformed(ActionEvent e) {
 			if (isFullScreen) {
-				log.fine("show-hide: removing fullscreen");
+				log.fine("show-hide: hiding window");
 				device.setFullScreenWindow(null);
 			} else {
-				log.fine("show-hide: setting fullscreen");
+				log.fine("show-hide: showing window");
 				device.setFullScreenWindow(f);
 				dirty = true;
-				renderWrapper();
+				repaint();
 			}
 			isFullScreen = !isFullScreen;
 		}
@@ -226,7 +225,7 @@ public class Viewer2 extends JPanel {
 				preferences.setOnScreenDisplay(Preferences.ON_SCREEN_DISPLAY_OFF);
 			}
 			dirty = true;
-			renderWrapper();
+			repaint();
 		}
 	};
 
@@ -259,10 +258,10 @@ public class Viewer2 extends JPanel {
 				}
 			} else if (GO_UP.equals(key)) {
 				updatePaintPosition(0, fixedScrollHeight());
-				renderWrapper();
+				repaint();
 			} else if (GO_DOWN.equals(key)) {
 				updatePaintPosition(0, -fixedScrollHeight());
-				renderWrapper();
+				repaint();
 			} else if (SCROLL.equals(key)) {
 				if (isScrollComplete()) {
 					showNextPage();
@@ -328,7 +327,7 @@ public class Viewer2 extends JPanel {
 						}
 					}
 					updatePaintPosition(deltaX, deltaY);
-					renderWrapper();
+					repaint();
 				}
 			} // end-if: SCROLL
 			else if (GO_TO_PAGE.equals(key)) {
@@ -405,7 +404,7 @@ public class Viewer2 extends JPanel {
 				}
 			}
 			updatePaintPosition(-1, -1);
-			renderWrapper();
+			repaint();
 		}
 	}
 
@@ -428,7 +427,7 @@ public class Viewer2 extends JPanel {
 			}
 			load(comicBook.getCurrentPageURL());
 			updatePaintPosition(-1, -1);
-			renderWrapper();
+			repaint();
 		}
 	}
 
@@ -503,6 +502,7 @@ public class Viewer2 extends JPanel {
 		this.comicBook = cb;
 		this.preferences = preferences;
 
+		// TODO: isHiDPI -> getDeviceScaleFactor() > 1.0
 		this.isHiDPI = isHiDPI();
 
 		setupFont();
@@ -609,7 +609,7 @@ public class Viewer2 extends JPanel {
 						mouseY = e.getY();
 						log.fine("detected mouse drag: dx = " + _dx + ", dy = " + _dy);
 						updatePaintPosition(_dx, _dy);
-						renderWrapper();
+						repaint();
 					}
 				}
 			}
@@ -637,7 +637,7 @@ public class Viewer2 extends JPanel {
 								updatePaintPosition(-horizontalScrollAmount, 0);
 								horizontalScrollAmount = 0;
 								mouseLastCheckScrollX = System.currentTimeMillis();
-								renderWrapper();
+								repaint();
 							} else {
 								horizontalScrollAmount += e.getScrollAmount() * e.getWheelRotation() * 20;
 							}
@@ -646,7 +646,7 @@ public class Viewer2 extends JPanel {
 								updatePaintPosition(0, -verticalScrollAmount);
 								verticalScrollAmount = 0;
 								mouseLastCheckScrollY = System.currentTimeMillis();
-								renderWrapper();
+								repaint();
 							} else {
 								verticalScrollAmount += e.getScrollAmount() * e.getWheelRotation() * 20;
 							}
@@ -665,10 +665,10 @@ public class Viewer2 extends JPanel {
 		f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		f.setResizable(false);
 		f.setUndecorated(true);
-		f.setIgnoreRepaint(true);
+//		f.setIgnoreRepaint(true);
 		f.setBackground(Color.BLACK);
-		this.setIgnoreRepaint(true);
-		this.setBackground(Color.PINK);
+//		this.setIgnoreRepaint(true);
+		this.setBackground(Color.BLACK);
 		f.add(this);
 		// f.pack();
 		dev.setFullScreenWindow(f);
@@ -686,6 +686,7 @@ public class Viewer2 extends JPanel {
 		for (String fontName : fontNames) {
 			Font f = new Font(fontName, Font.PLAIN, strokeWidth);
 			if (!"Dialog".equals(f.getFamily())) {
+				log.fine("matched font " + fontName);
 				font = f;
 				break;
 			}
@@ -901,7 +902,7 @@ public class Viewer2 extends JPanel {
 			joinNextPage();
 		} else {
 			updatePaintPosition(-1, -1);
-			renderWrapper();
+			repaint();
 		}
 	}
 
@@ -916,7 +917,7 @@ public class Viewer2 extends JPanel {
 			joinPreviousPage();
 		} else {
 			updatePaintPosition(-1, -1);
-			renderWrapper();
+			repaint();
 		}
 	}
 
@@ -937,7 +938,7 @@ public class Viewer2 extends JPanel {
 			joinPreviousPage();
 		} else {
 			updatePaintPosition(-1, -1);
-			renderWrapper();
+			repaint();
 		}
 	}
 
@@ -963,13 +964,13 @@ public class Viewer2 extends JPanel {
 				joinNextPage();
 			} else {
 				updatePaintPosition(-1, -1);
-				renderWrapper();
+				repaint();
 			}
 		} else {
 			if (overlayThread == null) {
 				shape = endOfComicBookPath();
 				dirty = true;
-				renderWrapper();
+				repaint();
 				overlayThread = new Thread(new OverlayRunnable());
 				overlayThread.start();
 			}
@@ -992,13 +993,13 @@ public class Viewer2 extends JPanel {
 				joinPreviousPage();
 			} else {
 				updatePaintPosition(-1, -1);
-				renderWrapper();
+				repaint();
 			}
 		} else {
 			if (overlayThread == null) {
 				shape = startOfComicBookPath();
 				dirty = true;
-				renderWrapper();
+				repaint();
 				overlayThread = new Thread(new OverlayRunnable());
 				overlayThread.start();
 			}
@@ -1019,12 +1020,12 @@ public class Viewer2 extends JPanel {
 			URL urlJoined = comicBook.getNextPageURL();
 			load(comicBook.getPreviousPageURL(), urlJoined);
 			updatePaintPosition(-1, -1);
-			renderWrapper();
+			repaint();
 		} else {
 			if (overlayThread == null) {
 				shape = endOfComicBookPath();
 				dirty = true;
-				renderWrapper();
+				repaint();
 				overlayThread = new Thread(new OverlayRunnable());
 				overlayThread.start();
 			}
@@ -1045,12 +1046,12 @@ public class Viewer2 extends JPanel {
 			 */
 			load(comicBook.getPreviousPageURL(), comicBook.getNextPageURL());
 			updatePaintPosition(-1, -1);
-			renderWrapper();
+			repaint();
 		} else {
 			if (overlayThread == null) {
 				shape = startOfComicBookPath();
 				dirty = true;
-				renderWrapper();
+				repaint();
 				overlayThread = new Thread(new OverlayRunnable());
 				overlayThread.start();
 			}
@@ -1065,7 +1066,7 @@ public class Viewer2 extends JPanel {
 		joined = JOINED_NONE;
 		load(comicBook.getCurrentPageURL());
 		updatePaintPosition(-1, -1);
-		renderWrapper();
+		repaint();
 	}
 
 	private boolean isImplicitMangaPlusJoin(String check) {
@@ -1102,67 +1103,46 @@ public class Viewer2 extends JPanel {
 		return isImplicitMangaPlusJoin("l.");
 	}
 
-	/*
-	 * 
-	 */
-	protected void renderWrapper() {
-		BufferStrategy strategy = f.getBufferStrategy();
-		Graphics g = strategy.getDrawGraphics();
-		render(g);
-		strategy.show();
-		g.dispose();
-	}
-
-	protected void render(Graphics g) {
+	protected void paintComponent(Graphics g) {
+		super.paintComponent(g);
 		setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
-		boolean ICantFixTheRedrawBug = true;
+
 		if (screenImage != null) {
 			// if (pPaint != null) {
 			if (dirty) {
 				log.fine("dirty flag is set, we'll repaint no matter what");
 			}
-			if (!(pPaint.equals(pLastPaint)) || dirty == true || ICantFixTheRedrawBug) {
+			Graphics2D g2 = (Graphics2D) g;
+			switch (preferences.getScaleQuality()) {
+				case Preferences.QUALITY_FAST: {
+					g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+							RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
+					break;
+				}
+				case Preferences.QUALITY_MEDIUM: {
+					g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+							RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+					break;
+				}
+				case Preferences.QUALITY_HIGH: {
+					g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+							RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+					break;
+				}
+			} // end-switch ScalingQuality
+
+			if (!(pPaint.equals(pLastPaint)) || dirty == true) {
 				dirty = false;
-				g.setColor(Color.BLACK);
-				g.fillRect(0, 0, displayWidth, displayHeight);
 				long original_t0 = System.currentTimeMillis();
-				boolean complete = g.drawImage(screenImage, pPaint.x, pPaint.y, f);
+				boolean complete = g2.drawImage(screenImage, pPaint.x, pPaint.y, f);
 				long original_t1 = System.currentTimeMillis();
 				log.fine("time to draw original: " + (original_t1 - original_t0) + " ms (complete? "
 						+ complete + ")");
 				/*
 				 * Shape and page info preparations.
 				 */
-				Graphics2D g2 = (Graphics2D) g;
 				g2.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION,
 						RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-				if (this.isHiDPI) {
-					/*
-					 * HiDPI ("retina") display upscaling.
-					 */
-					long upscaling_t0 = System.currentTimeMillis();
-					switch (preferences.getScaleQuality()) {
-						case Preferences.QUALITY_FAST: {
-							g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-									RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR);
-							break;
-						}
-						case Preferences.QUALITY_MEDIUM: {
-							g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-									RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-							break;
-						}
-						case Preferences.QUALITY_HIGH: {
-							g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-									RenderingHints.VALUE_INTERPOLATION_BICUBIC);
-							break;
-						}
-					}
-					complete = g2.drawImage(screenImage, pPaint.x, pPaint.y, imageWidth, imageHeight, f);
-					long upscaling_t1 = System.currentTimeMillis();
-					log.fine("time to draw upscaled: " + (upscaling_t1 - upscaling_t0) + " ms (complete? "
-							+ complete + ")");
-				}
 				g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 				/*
 				 * OnScreenDisplay: page count and zoom factor.
@@ -1219,7 +1199,7 @@ public class Viewer2 extends JPanel {
 					tlPageCount.draw(g2, (float) pageCountX, (float) pageCountY);
 					tlZoomFactor.draw(g2, (float) zoomFactorX, (float) zoomFactorY);
 					tlFilename.draw(g2, (float) filenameX, (float) filenameY);
-				}
+				} // end-if: OnScreenDisplay is on
 				if (shape != null) {
 					/*
 					 * Prepare a square background bounding box for the shape.
@@ -1255,9 +1235,6 @@ public class Viewer2 extends JPanel {
 				pLastPaint = new Point(pPaint);
 			} else {
 				log.fine("not repainting since position didn't change");
-				g.clearRect(0, 0, displayWidth, displayHeight);
-				g.drawImage(screenImage, pPaint.x, pPaint.y, this);
-				pLastPaint = new Point(pPaint);
 			}
 			// } else {
 			// log.fine("image is ready, but paint point isn't. skipping paint");
@@ -1367,12 +1344,6 @@ public class Viewer2 extends JPanel {
 			s = s.substring(lastSeparator + 1, s.length());
 		}
 		return s;
-	}
-
-	@Override
-	public void paint(Graphics g) {
-		dirty = true;
-		render(g);
 	}
 
 	protected boolean isHiDPI() {
