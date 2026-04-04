@@ -1131,7 +1131,7 @@ public class Viewer2 extends JPanel {
 				}
 			} // end-switch ScalingQuality
 
-			if (!(pPaint.equals(pLastPaint)) || dirty == true) {
+//			if (!(pPaint.equals(pLastPaint)) || dirty == true) {
 				dirty = false;
 				long original_t0 = System.currentTimeMillis();
 				boolean complete = g2.drawImage(screenImage, pPaint.x, pPaint.y, f);
@@ -1233,9 +1233,9 @@ public class Viewer2 extends JPanel {
 				}
 
 				pLastPaint = new Point(pPaint);
-			} else {
-				log.fine("not repainting since position didn't change");
-			}
+//			} else {
+//				log.fine("not repainting since position didn't change");
+//			}
 			// } else {
 			// log.fine("image is ready, but paint point isn't. skipping paint");
 			// }
